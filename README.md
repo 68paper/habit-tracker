@@ -52,7 +52,7 @@
 
 ### 웹 브라우저에서 바로 사용
 ```
-https://[사용자명].github.io/habit-tracker
+https://68paper.github.io/habit-tracker
 ```
 
 ### PWA 앱으로 설치
