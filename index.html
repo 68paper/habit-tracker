@@ -31,77 +31,128 @@
                     <h1 class="text-3xl font-bold text-gray-800 mb-2">📝 일상 습관 추적기</h1>
                     <p class="text-gray-600">프로작가를 향한 여정 🎯</p>
                     
-                    <!-- 연결 상태 -->
+                    <!-- 연결 상태 및 설정 -->
                     <div class="flex items-center justify-center space-x-4 mt-2">
                         <div class="flex items-center space-x-2">
                             <div id="connectionStatus" class="w-2 h-2 rounded-full bg-gray-400"></div>
-                            <span id="connectionText" class="text-sm text-gray-600">오프라인 모드</span>
-                            <button onclick="showSetup()" class="text-xs text-blue-500 hover:text-blue-700 underline">
-                                설정
-                            </button>
+                            <span id="connectionText" class="text-sm text-gray-600">로컬 저장</span>
                         </div>
+                        <button onclick="showSetup()" class="text-xs text-blue-500 hover:text-blue-700 underline">
+                            구글 시트 연결
+                        </button>
+                        <button onclick="exportData()" class="text-xs text-green-500 hover:text-green-700 underline">
+                            내보내기
+                        </button>
                     </div>
                 </div>
 
-                <!-- 설정 모달 -->
+                <!-- 구글 시트 설정 모달 -->
                 <div id="setupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8">
+                    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8 max-h-96 overflow-y-auto">
                         <div class="text-center mb-6">
-                            <div class="w-16 h-16 mx-auto text-blue-500 mb-4">☁️</div>
+                            <div class="w-16 h-16 mx-auto text-blue-500 mb-4">🔗</div>
                             <h1 class="text-2xl font-bold text-gray-800">구글 시트 연결</h1>
-                            <p class="text-gray-600 mt-2">모든 기기에서 데이터를 동기화하세요</p>
+                            <p class="text-gray-600 mt-2">실시간 데이터 동기화</p>
                         </div>
 
                         <div class="space-y-6">
+                            <!-- 방법 1: Google Sheets API (권장) -->
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <h3 class="font-semibold text-green-800 mb-2">🚀 방법 1: Google Sheets API (권장)</h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                            Google API 키
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="apiKeyInput"
+                                            placeholder="AIzaSyC..."
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                        />
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-blue-500 underline">Google Cloud Console</a>에서 API 키 생성
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                            스프레드시트 ID
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="sheetIdInput"
+                                            placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                        />
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            URL에서 /d/ 다음 부분: docs.google.com/spreadsheets/d/<strong>SHEET_ID</strong>/edit
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                            시트 범위 (선택사항)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="sheetRangeInput"
+                                            placeholder="Sheet1!A:E"
+                                            value="Sheet1!A:E"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                        />
+                                    </div>
+                                    <button onclick="connectWithAPI()" class="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600">
+                                        API로 연결하기
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 방법 2: 공개 CSV -->
                             <div class="bg-blue-50 rounded-lg p-4">
-                                <h3 class="font-semibold text-blue-800 mb-2">📋 설정 방법</h3>
-                                <ol class="text-sm text-blue-700 space-y-1">
-                                    <li>1. <a href="https://sheets.google.com" target="_blank" class="underline">구글 시트</a>에서 새 시트 생성</li>
-                                    <li>2. A1: Date, B1: Novel, C1: Exercise, D1: Japanese, E1: Blog 입력</li>
-                                    <li>3. 파일 → 공유 → "링크가 있는 모든 사용자" 설정</li>
-                                    <li>4. 공유 URL 복사해서 아래에 붙여넣기</li>
-                                    <li>5. URL 끝의 '/edit#gid=0'을 '/export?format=csv'로 변경</li>
-                                </ol>
+                                <h3 class="font-semibold text-blue-800 mb-2">📊 방법 2: 공개 CSV 링크</h3>
+                                <div class="space-y-2">
+                                    <p class="text-sm text-blue-700">
+                                        1. 구글 시트에서 파일 → 공유 → "링크가 있는 모든 사용자"<br>
+                                        2. 아래 형식으로 URL 입력
+                                    </p>
+                                    <input
+                                        type="url"
+                                        id="csvUrlInput"
+                                        placeholder="https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=0"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                    />
+                                    <button onclick="connectWithCSV()" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                                        CSV로 연결하기
+                                    </button>
+                                </div>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    구글 시트 CSV URL
-                                </label>
-                                <input
-                                    type="url"
-                                    id="sheetUrlInput"
-                                    placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
-                            </div>
-
+                            <!-- 설정 안내 -->
                             <div class="bg-yellow-50 rounded-lg p-4">
-                                <h4 class="font-medium text-yellow-800 mb-1">⚠️ 주의사항</h4>
+                                <h4 class="font-medium text-yellow-800 mb-2">📋 구글 시트 설정</h4>
                                 <p class="text-sm text-yellow-700">
-                                    이 방법은 데이터를 읽기만 가능합니다. 체크한 내용은 로컬에만 저장되며, 
-                                    다른 기기와 실시간 동기화되지 않습니다.
+                                    A1: Date, B1: Novel, C1: Exercise, D1: Japanese, E1: Blog<br>
+                                    날짜 형식: YYYY-MM-DD (예: 2024-09-01)<br>
+                                    값: TRUE 또는 FALSE
                                 </p>
                             </div>
 
                             <div class="flex space-x-4">
-                                <button onclick="connectToSheet()" class="flex-1 bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600">
-                                    연결하기
-                                </button>
                                 <button onclick="hideSetup()" class="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300">
-                                    나중에
+                                    닫기
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 오류 메시지 -->
-                <div id="errorMessage" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-red-500">⚠️</span>
-                        <span id="errorText" class="text-red-700"></span>
-                        <button onclick="hideError()" class="ml-auto text-red-500 hover:text-red-700">✕</button>
+                <!-- 상태 메시지 -->
+                <div id="statusMessage" class="hidden mb-6">
+                    <div class="rounded-lg p-4">
+                        <div class="flex items-center space-x-2">
+                            <span id="statusIcon" class="text-xl"></span>
+                            <span id="statusText" class="font-medium"></span>
+                            <button onclick="hideStatus()" class="ml-auto hover:opacity-70">✕</button>
+                        </div>
                     </div>
                 </div>
 
@@ -129,6 +180,9 @@
                         <div id="progressBadge" class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
                             시작해보세요!
                         </div>
+                        <button onclick="syncData()" id="syncButton" class="hidden px-3 py-1 text-xs bg-blue-500 text-white rounded-full hover:bg-blue-600">
+                            동기화
+                        </button>
                     </div>
                 </div>
 
@@ -295,8 +349,12 @@
         let state = {
             currentDate: new Date(),
             habitData: JSON.parse(localStorage.getItem('habitData') || '{}'),
-            isConnected: false,
-            sheetUrl: localStorage.getItem('sheetUrl') || ''
+            connectionMode: 'local', // 'local', 'api', 'csv'
+            apiKey: localStorage.getItem('googleApiKey') || '',
+            sheetId: localStorage.getItem('googleSheetId') || '',
+            sheetRange: localStorage.getItem('googleSheetRange') || 'Sheet1!A:E',
+            csvUrl: localStorage.getItem('googleCsvUrl') || '',
+            lastSync: null
         };
 
         const habits = ['novel', 'exercise', 'japanese', 'blog'];
@@ -437,15 +495,29 @@
             }
 
             // 연결 상태 업데이트
+            updateConnectionStatus();
+        }
+
+        function updateConnectionStatus() {
             const statusDot = document.getElementById('connectionStatus');
             const statusText = document.getElementById('connectionText');
+            const syncButton = document.getElementById('syncButton');
             
-            if (state.isConnected) {
-                statusDot.className = 'w-2 h-2 rounded-full bg-green-500';
-                statusText.textContent = '구글 시트 연결됨';
-            } else {
-                statusDot.className = 'w-2 h-2 rounded-full bg-gray-400';
-                statusText.textContent = '오프라인 모드';
+            switch (state.connectionMode) {
+                case 'api':
+                    statusDot.className = 'w-2 h-2 rounded-full bg-green-500';
+                    statusText.textContent = 'Google API 연결됨';
+                    syncButton.classList.remove('hidden');
+                    break;
+                case 'csv':
+                    statusDot.className = 'w-2 h-2 rounded-full bg-blue-500';
+                    statusText.textContent = 'CSV 연결됨';
+                    syncButton.classList.remove('hidden');
+                    break;
+                default:
+                    statusDot.className = 'w-2 h-2 rounded-full bg-gray-400';
+                    statusText.textContent = '로컬 저장';
+                    syncButton.classList.add('hidden');
             }
         }
 
@@ -471,111 +543,356 @@
             updateUI();
         }
 
-        // 구글 시트에서 데이터 로드
-        async function loadDataFromSheet(url) {
-            if (!url) return;
+        // Google Sheets API로 데이터 가져오기
+        async function loadDataFromAPI() {
+            if (!state.apiKey || !state.sheetId) {
+                throw new Error('API 키와 시트 ID가 필요합니다');
+            }
+
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/${state.sheetRange}?key=${state.apiKey}`;
+            
+            showStatus('Google Sheets API로 데이터를 가져오는 중...', 'info');
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`API 오류: ${errorData.error?.message || response.statusText}`);
+            }
+            
+            const data = await response.json();
+            return parseGoogleSheetsData(data);
+        }
+
+        // CSV URL로 데이터 가져오기
+        async function loadDataFromCSV() {
+            if (!state.csvUrl) {
+                throw new Error('CSV URL이 필요합니다');
+            }
+
+            showStatus('CSV에서 데이터를 가져오는 중...', 'info');
             
             try {
-                showError('데이터를 불러오는 중...', false);
-                
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('시트에 접근할 수 없습니다');
+                const response = await fetch(state.csvUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: CSV에 접근할 수 없습니다`);
+                }
                 
                 const csvText = await response.text();
-                console.log('받은 CSV 데이터:', csvText); // 디버깅용
+                return parseCSVData(csvText);
+            } catch (err) {
+                // CORS 오류가 발생할 경우 프록시 서버 시도
+                if (err.message.includes('CORS') || err.name === 'TypeError') {
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(state.csvUrl)}`;
+                    const response = await fetch(proxyUrl);
+                    const data = await response.json();
+                    return parseCSVData(data.contents);
+                }
+                throw err;
+            }
+        }
+
+        // Google Sheets API 응답 데이터 파싱
+        function parseGoogleSheetsData(data) {
+            console.log('Google Sheets API 응답:', data);
+            
+            if (!data.values || data.values.length < 2) {
+                throw new Error('시트에 데이터가 없습니다');
+            }
+            
+            const headers = data.values[0];
+            const rows = data.values.slice(1);
+            
+            console.log('헤더:', headers);
+            console.log('데이터 행 수:', rows.length);
+            
+            // 헤더 검증
+            const expectedColumns = ['Date', 'Novel', 'Exercise', 'Japanese', 'Blog'];
+            const hasValidHeader = expectedColumns.every(col => headers.includes(col));
+            
+            if (!hasValidHeader) {
+                throw new Error(`시트 헤더가 올바르지 않습니다. 필요한 컬럼: ${expectedColumns.join(', ')}`);
+            }
+            
+            const parsedData = {};
+            
+            rows.forEach((row, index) => {
+                if (row.length >= 5 && row[0]) {
+                    try {
+                        const dateStr = row[0];
+                        const date = new Date(dateStr);
+                        
+                        if (isNaN(date.getTime())) {
+                            console.warn(`잘못된 날짜 형식: ${dateStr}`);
+                            return;
+                        }
+                        
+                        const normalizedDate = getDateKey(date);
+                        
+                        parsedData[normalizedDate] = {
+                            novel: String(row[1]).toUpperCase() === 'TRUE',
+                            exercise: String(row[2]).toUpperCase() === 'TRUE',
+                            japanese: String(row[3]).toUpperCase() === 'TRUE',
+                            blog: String(row[4]).toUpperCase() === 'TRUE'
+                        };
+                        
+                        console.log(`파싱됨: ${normalizedDate} =`, parsedData[normalizedDate]);
+                        
+                    } catch (err) {
+                        console.warn(`행 ${index + 2} 파싱 오류:`, err);
+                    }
+                }
+            });
+            
+            return parsedData;
+        }
+
+        // CSV 데이터 파싱
+        function parseCSVData(csvText) {
+            console.log('CSV 파싱 시작:', csvText.substring(0, 200) + '...');
+            
+            const lines = csvText.split('\n').filter(line => line.trim());
+            if (lines.length < 2) {
+                throw new Error('CSV 파일에 데이터가 없습니다');
+            }
+            
+            const header = lines[0].split(',').map(col => col.trim().replace(/"/g, ''));
+            console.log('헤더:', header);
+            
+            // 헤더 검증
+            const expectedColumns = ['Date', 'Novel', 'Exercise', 'Japanese', 'Blog'];
+            const hasValidHeader = expectedColumns.every(col => header.includes(col));
+            
+            if (!hasValidHeader) {
+                throw new Error(`CSV 헤더가 올바르지 않습니다. 필요한 컬럼: ${expectedColumns.join(', ')}`);
+            }
+            
+            const data = {};
+            
+            // 데이터 행 파싱
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',').map(col => col.trim().replace(/"/g, ''));
                 
-                const rows = csvText.split('\n').slice(1); // 헤더 제외
-                const data = {};
-                
-                rows.forEach((row, index) => {
-                    const cols = row.split(',').map(col => col.trim().replace(/"/g, ''));
-                    if (cols.length >= 5 && cols[0]) {
-                        const date = cols[0];
-                        data[date] = {
+                if (cols.length >= 5 && cols[0]) {
+                    const dateStr = cols[0];
+                    
+                    try {
+                        const date = new Date(dateStr);
+                        if (isNaN(date.getTime())) {
+                            console.warn(`잘못된 날짜 형식: ${dateStr}`);
+                            continue;
+                        }
+                        const normalizedDate = getDateKey(date);
+                        
+                        data[normalizedDate] = {
                             novel: cols[1].toUpperCase() === 'TRUE',
                             exercise: cols[2].toUpperCase() === 'TRUE',
                             japanese: cols[3].toUpperCase() === 'TRUE',
                             blog: cols[4].toUpperCase() === 'TRUE'
                         };
-                        console.log(`행 ${index + 2}: ${date} =`, data[date]); // 디버깅용
+                        
+                        console.log(`파싱됨: ${normalizedDate} =`, data[normalizedDate]);
+                    } catch (err) {
+                        console.warn(`날짜 파싱 오류: ${dateStr}`, err);
+                        continue;
                     }
-                });
+                }
+            }
+            
+            return data;
+        }
+
+        // 데이터 동기화
+        async function syncData() {
+            try {
+                let importedData;
                 
-                // 기존 로컬 데이터와 병합
-                state.habitData = { ...data, ...state.habitData };
+                if (state.connectionMode === 'api') {
+                    importedData = await loadDataFromAPI();
+                } else if (state.connectionMode === 'csv') {
+                    importedData = await loadDataFromCSV();
+                } else {
+                    showStatus('연결된 구글 시트가 없습니다', 'error');
+                    return;
+                }
+                
+                // 기존 로컬 데이터와 병합 (로컬 데이터 우선)
+                const mergedData = { ...importedData, ...state.habitData };
+                state.habitData = mergedData;
                 localStorage.setItem('habitData', JSON.stringify(state.habitData));
                 
-                state.isConnected = true;
-                localStorage.setItem('sheetUrl', url);
+                state.lastSync = new Date();
                 
-                hideError();
+                showStatus(`${Object.keys(importedData).length}개 항목을 동기화했습니다`, 'success');
                 updateUI();
                 
-                console.log('최종 데이터:', state.habitData); // 디버깅용
-                
             } catch (err) {
-                console.error('시트 로드 오류:', err);
-                showError(`데이터 로드 실패: ${err.message}`);
-                state.isConnected = false;
+                console.error('동기화 오류:', err);
+                showStatus(`동기화 실패: ${err.message}`, 'error');
             }
         }
 
-        // 설정 모달 표시/숨김
+        // Google Sheets API로 연결
+        async function connectWithAPI() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const sheetId = document.getElementById('sheetIdInput').value.trim();
+            const sheetRange = document.getElementById('sheetRangeInput').value.trim() || 'Sheet1!A:E';
+            
+            if (!apiKey || !sheetId) {
+                showStatus('API 키와 시트 ID를 모두 입력해주세요', 'error');
+                return;
+            }
+            
+            // 설정 저장
+            state.apiKey = apiKey;
+            state.sheetId = sheetId;
+            state.sheetRange = sheetRange;
+            state.connectionMode = 'api';
+            
+            localStorage.setItem('googleApiKey', apiKey);
+            localStorage.setItem('googleSheetId', sheetId);
+            localStorage.setItem('googleSheetRange', sheetRange);
+            
+            try {
+                await syncData();
+                hideSetup();
+            } catch (err) {
+                state.connectionMode = 'local';
+                showStatus(`API 연결 실패: ${err.message}`, 'error');
+            }
+        }
+
+        // CSV URL로 연결
+        async function connectWithCSV() {
+            const csvUrl = document.getElementById('csvUrlInput').value.trim();
+            
+            if (!csvUrl) {
+                showStatus('CSV URL을 입력해주세요', 'error');
+                return;
+            }
+            
+            // 설정 저장
+            state.csvUrl = csvUrl;
+            state.connectionMode = 'csv';
+            
+            localStorage.setItem('googleCsvUrl', csvUrl);
+            
+            try {
+                await syncData();
+                hideSetup();
+            } catch (err) {
+                state.connectionMode = 'local';
+                showStatus(`CSV 연결 실패: ${err.message}`, 'error');
+            }
+        }
+
+        // 데이터 내보내기
+        function exportData() {
+            const csvLines = ['Date,Novel,Exercise,Japanese,Blog'];
+            
+            Object.keys(state.habitData).sort().forEach(date => {
+                const habits = state.habitData[date];
+                const line = [
+                    date,
+                    habits.novel ? 'TRUE' : 'FALSE',
+                    habits.exercise ? 'TRUE' : 'FALSE',
+                    habits.japanese ? 'TRUE' : 'FALSE',
+                    habits.blog ? 'TRUE' : 'FALSE'
+                ].join(',');
+                csvLines.push(line);
+            });
+            
+            const csvContent = csvLines.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `habit_tracker_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showStatus('데이터가 CSV 파일로 내보내졌습니다', 'success');
+        }
+
+        // 모달 표시/숨김
         function showSetup() {
             document.getElementById('setupModal').classList.remove('hidden');
-            document.getElementById('sheetUrlInput').value = state.sheetUrl;
+            
+            // 저장된 설정값 로드
+            document.getElementById('apiKeyInput').value = state.apiKey;
+            document.getElementById('sheetIdInput').value = state.sheetId;
+            document.getElementById('sheetRangeInput').value = state.sheetRange;
+            document.getElementById('csvUrlInput').value = state.csvUrl;
         }
 
         function hideSetup() {
             document.getElementById('setupModal').classList.add('hidden');
         }
 
-        // 구글 시트 연결
-        function connectToSheet() {
-            const url = document.getElementById('sheetUrlInput').value.trim();
-            if (!url) {
-                showError('URL을 입력해주세요');
-                return;
-            }
+        // 상태 메시지 표시/숨김
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            const statusIcon = document.getElementById('statusIcon');
             
-            state.sheetUrl = url;
-            hideSetup();
-            loadDataFromSheet(url);
-        }
-
-        // 오류 메시지 표시/숨김
-        function showError(message, isError = true) {
-            const errorDiv = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
+            statusText.textContent = message;
             
-            errorText.textContent = message;
-            errorDiv.classList.remove('hidden');
+            // 타입별 스타일 설정
+            const styles = {
+                success: {
+                    class: 'bg-green-50 border border-green-200',
+                    icon: '✅',
+                    textClass: 'text-green-700'
+                },
+                error: {
+                    class: 'bg-red-50 border border-red-200',
+                    icon: '❌',
+                    textClass: 'text-red-700'
+                },
+                info: {
+                    class: 'bg-blue-50 border border-blue-200',
+                    icon: 'ℹ️',
+                    textClass: 'text-blue-700'
+                }
+            };
             
-            if (!isError) {
+            const style = styles[type] || styles.info;
+            statusDiv.firstElementChild.className = `rounded-lg p-4 ${style.class}`;
+            statusIcon.textContent = style.icon;
+            statusText.className = `font-medium ${style.textClass}`;
+            
+            statusDiv.classList.remove('hidden');
+            
+            // 성공 메시지는 3초 후 자동 숨김
+            if (type === 'success') {
                 setTimeout(() => {
-                    hideError();
-                }, 2000);
+                    hideStatus();
+                }, 3000);
             }
         }
 
-        function hideError() {
-            document.getElementById('errorMessage').classList.add('hidden');
+        function hideStatus() {
+            document.getElementById('statusMessage').classList.add('hidden');
         }
 
         // 초기화
         function init() {
             console.log('앱 초기화 시작');
             
+            // 저장된 연결 설정 복원
+            if (state.apiKey && state.sheetId) {
+                state.connectionMode = 'api';
+                console.log('Google Sheets API 설정 발견');
+            } else if (state.csvUrl) {
+                state.connectionMode = 'csv';
+                console.log('CSV URL 설정 발견');
+            }
+            
             // 초기 UI 업데이트
             updateUI();
-            
-            // 저장된 시트 URL이 있으면 자동 연결
-            if (state.sheetUrl) {
-                console.log('저장된 시트 URL 발견:', state.sheetUrl);
-                loadDataFromSheet(state.sheetUrl);
-            } else {
-                console.log('저장된 시트 URL 없음 - 오프라인 모드');
-            }
             
             console.log('초기화 완료');
         }
@@ -583,21 +900,24 @@
         // DOM 로드 완료 후 초기화
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM 로드 완료');
-            setTimeout(init, 100); // 약간의 지연 후 초기화
+            setTimeout(init, 100);
         });
 
         // 전역 오류 처리
         window.addEventListener('error', function(e) {
             console.error('전역 오류:', e.error);
-            showError('앱 실행 중 오류가 발생했습니다: ' + e.error.message);
+            showStatus('앱 실행 중 오류가 발생했습니다: ' + e.error.message, 'error');
         });
 
         // 약속 거부 오류 처리
         window.addEventListener('unhandledrejection', function(e) {
             console.error('처리되지 않은 약속 거부:', e.reason);
-            showError('네트워크 오류가 발생했습니다: ' + e.reason);
+            if (e.reason.toString().includes('fetch')) {
+                showStatus('네트워크 연결 오류입니다. 연결 설정을 확인해주세요.', 'error');
+            } else {
+                showStatus('데이터 처리 중 오류가 발생했습니다', 'error');
+            }
         });
     </script>
 </body>
 </html>
-
