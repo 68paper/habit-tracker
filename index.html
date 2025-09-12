@@ -2,23 +2,39 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>일상 습관 추적기</title>
-    <meta name="description" content="프로작가를 향한 여정 - 매일 습관을 체크하고 관리하세요">
+    <title>글 근육 습관 추적기</title>
+    <meta name="description" content="프로작가를 향한 여정 - 글 근육을 키우는 점진적 훈련">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'korean': ['Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     
     <style>
+        * {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            line-height: 1.6;
         }
-        .animate-spin {
-            animation: spin 1s linear infinite;
+        .animate-pulse-gentle {
+            animation: pulse-gentle 2s infinite;
         }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        @keyframes pulse-gentle {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
         }
     </style>
 </head>
@@ -28,130 +44,55 @@
             <div class="max-w-4xl mx-auto">
                 <!-- 헤더 -->
                 <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-gray-800 mb-2">📝 일상 습관 추적기</h1>
-                    <p class="text-gray-600">프로작가를 향한 여정 🎯</p>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">📝 글 근육 훈련소</h1>
+                    <p class="text-gray-600">작가의 체력을 단계별로 키우는 여정 💪</p>
                     
-                    <!-- 연결 상태 및 설정 -->
-                    <div class="flex items-center justify-center space-x-4 mt-2">
-                        <div class="flex items-center space-x-2">
-                            <div id="connectionStatus" class="w-2 h-2 rounded-full bg-gray-400"></div>
-                            <span id="connectionText" class="text-sm text-gray-600">로컬 저장</span>
-                        </div>
-                        <button onclick="showSetup()" class="text-xs text-blue-500 hover:text-blue-700 underline">
-                            구글 시트 연결
+                    <!-- 데이터 관리 -->
+                    <div class="flex items-center justify-center space-x-4 mt-4">
+                        <button onclick="exportData()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm">
+                            📥 데이터 다운로드
                         </button>
-                        <button onclick="exportData()" class="text-xs text-green-500 hover:text-green-700 underline">
-                            내보내기
-                        </button>
+                        <label class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm cursor-pointer">
+                            📤 데이터 업로드
+                            <input type="file" accept=".json" onchange="importData(event)" class="hidden">
+                        </label>
                     </div>
                 </div>
 
-                <!-- 구글 시트 설정 모달 -->
-                <div id="setupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8 max-h-96 overflow-y-auto">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 mx-auto text-blue-500 mb-4">🔗</div>
-                            <h1 class="text-2xl font-bold text-gray-800">구글 시트 연결</h1>
-                            <p class="text-gray-600 mt-2">실시간 데이터 동기화</p>
+                <!-- 현재 글 근육 레벨 -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <div class="text-center mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">현재 글 근육 레벨</h2>
+                        <div class="flex items-center justify-center space-x-4">
+                            <div class="text-4xl font-bold text-blue-600" id="currentLevel">1</div>
+                            <div class="text-gray-600">
+                                <div class="text-lg font-semibold" id="levelDescription">초보 작가 (5분)</div>
+                                <div class="text-sm" id="levelProgress">다음 레벨까지: 0/7일</div>
+                            </div>
                         </div>
-
-                        <div class="space-y-6">
-                            <!-- 방법 1: Google Sheets API (권장) -->
-                            <div class="bg-green-50 rounded-lg p-4">
-                                <h3 class="font-semibold text-green-800 mb-2">🚀 방법 1: Google Sheets API (권장)</h3>
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                                            Google API 키
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="apiKeyInput"
-                                            placeholder="AIzaSyC..."
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                                        />
-                                        <p class="text-xs text-gray-500 mt-1">
-                                            <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-blue-500 underline">Google Cloud Console</a>에서 API 키 생성
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                                            스프레드시트 ID
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="sheetIdInput"
-                                            placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                                        />
-                                        <p class="text-xs text-gray-500 mt-1">
-                                            URL에서 /d/ 다음 부분: docs.google.com/spreadsheets/d/<strong>SHEET_ID</strong>/edit
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                                            시트 범위 (선택사항)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="sheetRangeInput"
-                                            placeholder="Sheet1!A:E"
-                                            value="Sheet1!A:E"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                                        />
-                                    </div>
-                                    <button onclick="connectWithAPI()" class="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600">
-                                        API로 연결하기
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 방법 2: 공개 CSV -->
-                            <div class="bg-blue-50 rounded-lg p-4">
-                                <h3 class="font-semibold text-blue-800 mb-2">📊 방법 2: 공개 CSV 링크</h3>
-                                <div class="space-y-2">
-                                    <p class="text-sm text-blue-700">
-                                        1. 구글 시트에서 파일 → 공유 → "링크가 있는 모든 사용자"<br>
-                                        2. 아래 형식으로 URL 입력
-                                    </p>
-                                    <input
-                                        type="url"
-                                        id="csvUrlInput"
-                                        placeholder="https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=0"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                    />
-                                    <button onclick="connectWithCSV()" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                                        CSV로 연결하기
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 설정 안내 -->
-                            <div class="bg-yellow-50 rounded-lg p-4">
-                                <h4 class="font-medium text-yellow-800 mb-2">📋 구글 시트 설정</h4>
-                                <p class="text-sm text-yellow-700">
-                                    A1: Date, B1: Novel, C1: Exercise, D1: Japanese, E1: Blog<br>
-                                    날짜 형식: YYYY-MM-DD (예: 2024-09-01)<br>
-                                    값: TRUE 또는 FALSE
-                                </p>
-                            </div>
-
-                            <div class="flex space-x-4">
-                                <button onclick="hideSetup()" class="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300">
-                                    닫기
-                                </button>
-                            </div>
+                        <!-- 진행 바 -->
+                        <div class="w-full bg-gray-200 rounded-full h-3 mt-4">
+                            <div id="progressBar" class="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
-                </div>
-
-                <!-- 상태 메시지 -->
-                <div id="statusMessage" class="hidden mb-6">
-                    <div class="rounded-lg p-4">
-                        <div class="flex items-center space-x-2">
-                            <span id="statusIcon" class="text-xl"></span>
-                            <span id="statusText" class="font-medium"></span>
-                            <button onclick="hideStatus()" class="ml-auto hover:opacity-70">✕</button>
+                    
+                    <!-- 레벨별 목표 미리보기 -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                        <div class="p-2 bg-blue-100 rounded text-center">
+                            <div class="font-semibold">Lv.1</div>
+                            <div>5분</div>
+                        </div>
+                        <div class="p-2 bg-gray-100 rounded text-center">
+                            <div class="font-semibold">Lv.2</div>
+                            <div>10분</div>
+                        </div>
+                        <div class="p-2 bg-gray-100 rounded text-center">
+                            <div class="font-semibold">Lv.3</div>
+                            <div>15분</div>
+                        </div>
+                        <div class="p-2 bg-gray-100 rounded text-center">
+                            <div class="font-semibold">Lv.∞</div>
+                            <div>4시간</div>
                         </div>
                     </div>
                 </div>
@@ -180,163 +121,132 @@
                         <div id="progressBadge" class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
                             시작해보세요!
                         </div>
-                        <button onclick="syncData()" id="syncButton" class="hidden px-3 py-1 text-xs bg-blue-500 text-white rounded-full hover:bg-blue-600">
-                            동기화
-                        </button>
                     </div>
                 </div>
 
-                <!-- 습관 체크리스트 -->
-                <div class="grid gap-4 mb-6">
-                    <!-- 소설 쓰기 -->
-                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                <!-- 소설쓰기 - 메인 습관 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-l-4 border-blue-500">
+                    <div class="mb-4">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-4">
-                                <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                                <div class="w-4 h-4 rounded-full bg-blue-500"></div>
                                 <div>
-                                    <div class="flex items-center space-x-2">
-                                        <h3 class="text-lg font-semibold text-gray-800">소설 쓰기</h3>
-                                        <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">필수</span>
-                                    </div>
-                                    <p class="text-sm text-gray-600">"5분만 써보자" 시작</p>
-                                    <p class="text-xs text-gray-500">매일</p>
+                                    <h3 class="text-xl font-bold text-gray-800">글쓰기 근육 훈련</h3>
+                                    <p class="text-sm text-gray-600">현재 목표: <span id="currentTarget" class="font-semibold text-blue-600">5분</span></p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-4">
-                                <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-700">이번 주: <span id="novel-week">0</span>/7</p>
-                                    <p class="text-xs text-gray-500">연속: <span id="novel-streak">0</span>일</p>
-                                </div>
-                                <button onclick="toggleHabit('novel')" id="novel-btn" class="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 bg-gray-200 text-gray-500 hover:bg-gray-300">
-                                    <span class="text-2xl">✗</span>
-                                </button>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-gray-700">연속: <span id="novel-streak">0</span>일</p>
+                                <p class="text-xs text-gray-500">이번 주: <span id="novel-week">0</span>/7</p>
                             </div>
                         </div>
                     </div>
 
+                    <!-- 시간 입력 -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">오늘 글쓰기 시간 (분)</label>
+                        <div class="flex items-center space-x-4">
+                            <input 
+                                type="number" 
+                                id="writingMinutes" 
+                                min="0" 
+                                max="240" 
+                                placeholder="예: 5"
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                onchange="updateWritingProgress()"
+                            >
+                            <button 
+                                onclick="toggleWritingHabit()" 
+                                id="writing-btn" 
+                                class="px-6 py-2 rounded-lg font-medium transition-all duration-200 bg-gray-200 text-gray-600"
+                            >
+                                완료 체크
+                            </button>
+                        </div>
+                        <!-- 목표 달성 상태 -->
+                        <div id="writingStatus" class="mt-2 text-sm text-gray-600">
+                            목표 시간을 입력하고 완료 체크를 눌러주세요
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 보조 습관들 -->
+                <div class="grid gap-4 mb-6">
                     <!-- 운동 -->
-                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div class="bg-white rounded-lg shadow-md p-4">
                         <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-3">
                                 <div class="w-3 h-3 rounded-full bg-green-500"></div>
                                 <div>
-                                    <div class="flex items-center space-x-2">
-                                        <h3 class="text-lg font-semibold text-gray-800">운동</h3>
-                                        <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">권장</span>
-                                    </div>
-                                    <p class="text-sm text-gray-600">실내자전거 20분 + 스쿼트 50개 </p>
-                                    <p class="text-xs text-gray-500">매일 권장</p>
+                                    <h4 class="font-semibold text-gray-800">운동</h4>
+                                    <p class="text-xs text-gray-600">몸의 체력 = 글의 체력</p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-4">
-                                <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-700">이번 주: <span id="exercise-week">0</span>/7</p>
-                                    <p class="text-xs text-gray-500">연속: <span id="exercise-streak">0</span>일</p>
-                                </div>
-                                <button onclick="toggleHabit('exercise')" id="exercise-btn" class="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 bg-gray-200 text-gray-500 hover:bg-gray-300">
-                                    <span class="text-2xl">✗</span>
-                                </button>
-                            </div>
+                            <button onclick="toggleHabit('exercise')" id="exercise-btn" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 bg-gray-200 text-gray-500">
+                                <span class="text-xl">✗</span>
+                            </button>
                         </div>
                     </div>
 
                     <!-- 일본어 -->
-                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div class="bg-white rounded-lg shadow-md p-4">
                         <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-3">
                                 <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
                                 <div>
-                                    <div class="flex items-center space-x-2">
-                                        <h3 class="text-lg font-semibold text-gray-800">일본어</h3>
-                                        <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">권장</span>
-                                    </div>
-                                    <p class="text-sm text-gray-600">5분 기초 회화/출장 표현</p>
-                                    <p class="text-xs text-gray-500">매일 권장</p>
+                                    <h4 class="font-semibold text-gray-800">일본어</h4>
+                                    <p class="text-xs text-gray-600">언어의 다양성 확장</p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-4">
-                                <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-700">이번 주: <span id="japanese-week">0</span>/7</p>
-                                    <p class="text-xs text-gray-500">연속: <span id="japanese-streak">0</span>일</p>
-                                </div>
-                                <button onclick="toggleHabit('japanese')" id="japanese-btn" class="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 bg-gray-200 text-gray-500 hover:bg-gray-300">
-                                    <span class="text-2xl">✗</span>
-                                </button>
-                            </div>
+                            <button onclick="toggleHabit('japanese')" id="japanese-btn" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 bg-gray-200 text-gray-500">
+                                <span class="text-xl">✗</span>
+                            </button>
                         </div>
                     </div>
 
                     <!-- 블로그 -->
-                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div class="bg-white rounded-lg shadow-md p-4">
                         <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-3">
                                 <div class="w-3 h-3 rounded-full bg-purple-500"></div>
                                 <div>
-                                    <div class="flex items-center space-x-2">
-                                        <h3 class="text-lg font-semibold text-gray-800">블로그</h3>
-                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">선택</span>
-                                    </div>
-                                    <p class="text-sm text-gray-600">맛집/숙박/체험 리뷰</p>
-                                    <p class="text-xs text-gray-500">주 3-4회</p>
+                                    <h4 class="font-semibold text-gray-800">블로그</h4>
+                                    <p class="text-xs text-gray-600">글쓰기 실전 연습</p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-4">
-                                <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-700">이번 주: <span id="blog-week">0</span>/7</p>
-                                    <p class="text-xs text-gray-500">연속: <span id="blog-streak">0</span>일</p>
-                                </div>
-                                <button onclick="toggleHabit('blog')" id="blog-btn" class="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 bg-gray-200 text-gray-500 hover:bg-gray-300">
-                                    <span class="text-2xl">✗</span>
-                                </button>
-                            </div>
+                            <button onclick="toggleHabit('blog')" id="blog-btn" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 bg-gray-200 text-gray-500">
+                                <span class="text-xl">✗</span>
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 통계 -->
+                <!-- 격려 및 분석 -->
                 <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        📈 이번 주 통계
-                    </h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        <div class="text-center">
-                            <div class="w-16 h-16 rounded-full bg-blue-500 text-white flex items-center justify-center mx-auto mb-2">
-                                <span id="novel-count" class="text-xl font-bold">0</span>
-                            </div>
-                            <p class="text-sm font-medium text-gray-700">소설 쓰기</p>
-                            <p class="text-xs text-gray-500"><span id="novel-percent">0</span>%</p>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">📊 글 근육 분석</h3>
+                    
+                    <!-- 주간 통계 -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600" id="weeklyMinutes">0</div>
+                            <div class="text-sm text-gray-600">이번 주 총 글쓰기</div>
+                            <div class="text-xs text-gray-500">분</div>
                         </div>
-                        <div class="text-center">
-                            <div class="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center mx-auto mb-2">
-                                <span id="exercise-count" class="text-xl font-bold">0</span>
-                            </div>
-                            <p class="text-sm font-medium text-gray-700">운동</p>
-                            <p class="text-xs text-gray-500"><span id="exercise-percent">0</span>%</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="w-16 h-16 rounded-full bg-yellow-500 text-white flex items-center justify-center mx-auto mb-2">
-                                <span id="japanese-count" class="text-xl font-bold">0</span>
-                            </div>
-                            <p class="text-sm font-medium text-gray-700">일본어</p>
-                            <p class="text-xs text-gray-500"><span id="japanese-percent">0</span>%</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="w-16 h-16 rounded-full bg-purple-500 text-white flex items-center justify-center mx-auto mb-2">
-                                <span id="blog-count" class="text-xl font-bold">0</span>
-                            </div>
-                            <p class="text-sm font-medium text-gray-700">블로그</p>
-                            <p class="text-xs text-gray-500"><span id="blog-percent">0</span>%</p>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600" id="averageMinutes">0</div>
+                            <div class="text-sm text-gray-600">일평균 글쓰기</div>
+                            <div class="text-xs text-gray-500">분</div>
                         </div>
                     </div>
 
-                    <!-- 격려 메시지 -->
+                    <!-- 코치의 조언 -->
                     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
-                        <h4 class="font-medium text-gray-800 mb-2">💪 격려의 한마디</h4>
-                        <p id="encouragementText" class="text-sm text-gray-600">
-                            괜찮아요. '5분만 써보자'로 소설부터 시작해보세요. 작은 시작이 큰 변화를 만듭니다.
+                        <h4 class="font-medium text-gray-800 mb-2">🏋️ 코치의 조언</h4>
+                        <p id="coachAdvice" class="text-sm text-gray-700 mb-2">
+                            글 근육은 하루아침에 생기지 않습니다. 꾸준함이 핵심이에요.
                         </p>
-                        <p class="text-xs text-gray-500 mt-2">
-                            💡 기억하세요: 완벽하지 않아도 지속하는 것이 핵심입니다!
+                        <p class="text-xs text-gray-600" id="nextLevelHint">
+                            💡 7일 연속 달성하면 다음 레벨로 승급합니다!
                         </p>
                     </div>
                 </div>
@@ -345,19 +255,30 @@
     </div>
 
     <script>
+        // 글 근육 레벨 시스템
+        const WRITING_LEVELS = [
+            { level: 1, minutes: 5, title: "초보 작가", description: "첫 걸음을 떼는 단계", daysRequired: 7 },
+            { level: 2, minutes: 10, title: "습관 작가", description: "루틴이 잡히는 단계", daysRequired: 7 },
+            { level: 3, minutes: 15, title: "꾸준한 작가", description: "안정적인 글쓰기", daysRequired: 7 },
+            { level: 4, minutes: 20, title: "집중 작가", description: "몰입의 시작", daysRequired: 10 },
+            { level: 5, minutes: 30, title: "지속 작가", description: "깊은 사고의 시작", daysRequired: 10 },
+            { level: 6, minutes: 45, title: "숙련 작가", description: "글의 흐름을 타는 단계", daysRequired: 14 },
+            { level: 7, minutes: 60, title: "전문 작가", description: "1시간 집중력 완성", daysRequired: 14 },
+            { level: 8, minutes: 90, title: "마스터 작가", description: "깊은 몰입 상태", daysRequired: 21 },
+            { level: 9, minutes: 120, title: "베테랑 작가", description: "2시간 연속 글쓰기", daysRequired: 21 },
+            { level: 10, minutes: 180, title: "프로 작가", description: "3시간 지구력", daysRequired: 30 },
+            { level: 11, minutes: 240, title: "마라톤 작가", description: "4시간 완주 가능", daysRequired: 30 }
+        ];
+
         // 전역 상태
         let state = {
             currentDate: new Date(),
             habitData: JSON.parse(localStorage.getItem('habitData') || '{}'),
-            connectionMode: 'local', // 'local', 'api', 'csv'
-            apiKey: localStorage.getItem('googleApiKey') || '',
-            sheetId: localStorage.getItem('googleSheetId') || '',
-            sheetRange: localStorage.getItem('googleSheetRange') || 'Sheet1!A:E',
-            csvUrl: localStorage.getItem('googleCsvUrl') || '',
-            lastSync: null
+            currentLevel: parseInt(localStorage.getItem('currentLevel') || '1'),
+            levelProgress: parseInt(localStorage.getItem('levelProgress') || '0')
         };
 
-        const habits = ['novel', 'exercise', 'japanese', 'blog'];
+        const habits = ['exercise', 'japanese', 'blog'];
 
         // 유틸리티 함수들
         function getDateKey(date) {
@@ -374,38 +295,30 @@
             return date.toLocaleDateString('ko-KR', options);
         }
 
+        function getCurrentLevel() {
+            return WRITING_LEVELS.find(level => level.level === state.currentLevel) || WRITING_LEVELS[0];
+        }
+
+        function getWritingData(date) {
+            const dateKey = getDateKey(date);
+            return state.habitData[dateKey]?.writing || { completed: false, minutes: 0 };
+        }
+
         function isHabitDone(habitId) {
             const dateKey = getDateKey(state.currentDate);
+            if (habitId === 'writing') {
+                return state.habitData[dateKey]?.writing?.completed || false;
+            }
             return state.habitData[dateKey]?.[habitId] || false;
         }
 
-        function getWeekStats() {
-            const stats = {};
-            const today = new Date(state.currentDate);
-            
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                const dateKey = getDateKey(date);
-                
-                habits.forEach(habit => {
-                    if (!stats[habit]) stats[habit] = 0;
-                    if (state.habitData[dateKey]?.[habit]) {
-                        stats[habit]++;
-                    }
-                });
-            }
-            
-            return stats;
-        }
-
-        function getStreak(habitId) {
+        function getWritingStreak() {
             let streak = 0;
             let checkDate = new Date(state.currentDate);
             
             while (true) {
-                const dateKey = getDateKey(checkDate);
-                if (state.habitData[dateKey]?.[habitId]) {
+                const writingData = getWritingData(checkDate);
+                if (writingData.completed) {
                     streak++;
                     checkDate.setDate(checkDate.getDate() - 1);
                 } else {
@@ -416,112 +329,199 @@
             return streak;
         }
 
+        function getWeeklyWritingStats() {
+            let totalMinutes = 0;
+            let completedDays = 0;
+            const today = new Date(state.currentDate);
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const writingData = getWritingData(date);
+                
+                if (writingData.completed) {
+                    totalMinutes += writingData.minutes;
+                    completedDays++;
+                }
+            }
+            
+            return {
+                totalMinutes,
+                completedDays,
+                averageMinutes: completedDays > 0 ? Math.round(totalMinutes / completedDays) : 0
+            };
+        }
+
+        // 레벨 업 체크
+        function checkLevelUp() {
+            const currentLevelData = getCurrentLevel();
+            const streak = getWritingStreak();
+            
+            if (streak >= currentLevelData.daysRequired && state.currentLevel < WRITING_LEVELS.length) {
+                state.currentLevel++;
+                state.levelProgress = 0;
+                localStorage.setItem('currentLevel', state.currentLevel.toString());
+                localStorage.setItem('levelProgress', '0');
+                
+                // 레벨업 알림
+                setTimeout(() => {
+                    alert(`🎉 축하합니다! ${currentLevelData.title}에서 레벨업했습니다!`);
+                }, 500);
+            } else {
+                state.levelProgress = Math.min(streak, currentLevelData.daysRequired);
+                localStorage.setItem('levelProgress', state.levelProgress.toString());
+            }
+        }
+
         // UI 업데이트
         function updateUI() {
             // 날짜 업데이트
             document.getElementById('currentDateText').textContent = formatDate(state.currentDate);
             
-            // 진행상황 계산
-            const completedToday = habits.filter(h => isHabitDone(h)).length;
-            const todayStats = getWeekStats();
+            // 현재 레벨 정보 업데이트
+            const currentLevelData = getCurrentLevel();
+            document.getElementById('currentLevel').textContent = currentLevelData.level;
+            document.getElementById('levelDescription').textContent = `${currentLevelData.title} (${currentLevelData.minutes}분)`;
+            document.getElementById('levelProgress').textContent = 
+                `다음 레벨까지: ${state.levelProgress}/${currentLevelData.daysRequired}일`;
             
-            // 진행상황 텍스트 업데이트
+            // 진행 바 업데이트
+            const progressPercentage = (state.levelProgress / currentLevelData.daysRequired) * 100;
+            document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+            
+            // 현재 목표 업데이트
+            document.getElementById('currentTarget').textContent = `${currentLevelData.minutes}분`;
+            
+            // 글쓰기 데이터 로드
+            const todayWriting = getWritingData(state.currentDate);
+            document.getElementById('writingMinutes').value = todayWriting.minutes || '';
+            
+            // 글쓰기 상태 업데이트
+            updateWritingStatus();
+            
+            // 연속 기록 및 주간 통계
+            document.getElementById('novel-streak').textContent = getWritingStreak();
+            
+            const weekStats = getWeeklyWritingStats();
+            document.getElementById('novel-week').textContent = weekStats.completedDays;
+            document.getElementById('weeklyMinutes').textContent = weekStats.totalMinutes;
+            document.getElementById('averageMinutes').textContent = weekStats.averageMinutes;
+            
+            // 진행상황 계산
+            const completedToday = habits.filter(h => isHabitDone(h)).length + (todayWriting.completed ? 1 : 0);
             document.getElementById('progressText').textContent = `오늘 완료: ${completedToday}/4`;
             
-            // 진행상황 배지 업데이트
-            const progressBadge = document.getElementById('progressBadge');
-            let badgeClass, badgeText;
-            
-            if (completedToday === 4) {
-                badgeClass = 'bg-green-100 text-green-800';
-                badgeText = '완벽!';
-            } else if (completedToday >= 2) {
-                badgeClass = 'bg-yellow-100 text-yellow-800';
-                badgeText = '훌륭!';
-            } else if (completedToday >= 1) {
-                badgeClass = 'bg-blue-100 text-blue-800';
-                badgeText = '좋아요!';
-            } else {
-                badgeClass = 'bg-gray-100 text-gray-800';
-                badgeText = '시작해보세요!';
-            }
-            
-            progressBadge.className = `px-3 py-1 rounded-full text-sm font-medium ${badgeClass}`;
-            progressBadge.textContent = badgeText;
-
-            // 각 습관 버튼 업데이트
+            // 보조 습관 버튼 업데이트
             habits.forEach(habit => {
                 const btn = document.getElementById(`${habit}-btn`);
-                const weekSpan = document.getElementById(`${habit}-week`);
-                const streakSpan = document.getElementById(`${habit}-streak`);
-                const countSpan = document.getElementById(`${habit}-count`);
-                const percentSpan = document.getElementById(`${habit}-percent`);
-                
                 const isDone = isHabitDone(habit);
-                const streak = getStreak(habit);
-                const weekCount = todayStats[habit] || 0;
-                const percent = Math.round((weekCount / 7) * 100);
                 
                 if (isDone) {
                     const colors = {
-                        novel: 'bg-blue-500',
                         exercise: 'bg-green-500',
                         japanese: 'bg-yellow-500',
                         blog: 'bg-purple-500'
                     };
-                    btn.className = `w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${colors[habit]} text-white shadow-lg scale-105`;
-                    btn.innerHTML = '<span class="text-2xl">✓</span>';
+                    btn.className = `w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${colors[habit]} text-white shadow-lg`;
+                    btn.innerHTML = '<span class="text-xl">✓</span>';
                 } else {
-                    btn.className = 'w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 bg-gray-200 text-gray-500 hover:bg-gray-300';
-                    btn.innerHTML = '<span class="text-2xl">✗</span>';
+                    btn.className = 'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 bg-gray-200 text-gray-500 hover:bg-gray-300';
+                    btn.innerHTML = '<span class="text-xl">✗</span>';
                 }
-                
-                weekSpan.textContent = weekCount;
-                streakSpan.textContent = streak;
-                countSpan.textContent = weekCount;
-                percentSpan.textContent = percent;
             });
-
-            // 격려 메시지 업데이트
-            const encouragementText = document.getElementById('encouragementText');
-            if (completedToday === 4) {
-                encouragementText.textContent = "오늘 모든 습관을 완료했네요! 정말 대단해요. 이 페이스를 유지하면 한 달의 벽을 넘을 수 있을 거예요!";
-            } else if (completedToday >= 2) {
-                encouragementText.textContent = "좋은 진전이에요! 소설 쓰기만큼은 꼭 유지하면서 나머지도 차근차근 해나가세요.";
-            } else if (completedToday >= 1) {
-                encouragementText.textContent = "시작이 반이에요! 특히 소설 쓰기를 했다면 오늘은 성공한 하루입니다.";
-            } else {
-                encouragementText.textContent = "괜찮아요. '5분만 써보자'로 소설부터 시작해보세요. 작은 시작이 큰 변화를 만듭니다.";
-            }
-
-            // 연결 상태 업데이트
-            updateConnectionStatus();
-        }
-
-        function updateConnectionStatus() {
-            const statusDot = document.getElementById('connectionStatus');
-            const statusText = document.getElementById('connectionText');
-            const syncButton = document.getElementById('syncButton');
             
-            switch (state.connectionMode) {
-                case 'api':
-                    statusDot.className = 'w-2 h-2 rounded-full bg-green-500';
-                    statusText.textContent = 'Google API 연결됨';
-                    syncButton.classList.remove('hidden');
-                    break;
-                case 'csv':
-                    statusDot.className = 'w-2 h-2 rounded-full bg-blue-500';
-                    statusText.textContent = 'CSV 연결됨';
-                    syncButton.classList.remove('hidden');
-                    break;
-                default:
-                    statusDot.className = 'w-2 h-2 rounded-full bg-gray-400';
-                    statusText.textContent = '로컬 저장';
-                    syncButton.classList.add('hidden');
+            // 코치 조언 업데이트
+            updateCoachAdvice(weekStats, completedToday);
+        }
+
+        function updateWritingStatus() {
+            const minutes = parseInt(document.getElementById('writingMinutes').value) || 0;
+            const currentLevelData = getCurrentLevel();
+            const todayWriting = getWritingData(state.currentDate);
+            const btn = document.getElementById('writing-btn');
+            const status = document.getElementById('writingStatus');
+            
+            if (todayWriting.completed) {
+                btn.className = 'px-6 py-2 rounded-lg font-medium transition-all duration-200 bg-blue-500 text-white shadow-lg';
+                btn.textContent = '완료됨 ✓';
+                status.textContent = `목표 달성! ${todayWriting.minutes}분 작성했습니다.`;
+                status.className = 'mt-2 text-sm text-green-600 font-medium';
+            } else if (minutes >= currentLevelData.minutes) {
+                btn.className = 'px-6 py-2 rounded-lg font-medium transition-all duration-200 bg-green-500 text-white hover:bg-green-600';
+                btn.textContent = '목표 달성!';
+                status.textContent = `훌륭해요! ${minutes}분으로 목표를 달성했습니다. 완료 체크를 눌러주세요.`;
+                status.className = 'mt-2 text-sm text-green-600 font-medium';
+            } else if (minutes > 0) {
+                btn.className = 'px-6 py-2 rounded-lg font-medium transition-all duration-200 bg-yellow-500 text-white hover:bg-yellow-600';
+                btn.textContent = '부분 완료';
+                status.textContent = `${minutes}분 작성! 목표까지 ${currentLevelData.minutes - minutes}분 더 필요합니다.`;
+                status.className = 'mt-2 text-sm text-yellow-600';
+            } else {
+                btn.className = 'px-6 py-2 rounded-lg font-medium transition-all duration-200 bg-gray-200 text-gray-600';
+                btn.textContent = '완료 체크';
+                status.textContent = `목표: ${currentLevelData.minutes}분 글쓰기`;
+                status.className = 'mt-2 text-sm text-gray-600';
             }
         }
 
-        // 습관 토글
+        function updateCoachAdvice(weekStats, completedToday) {
+            const advice = document.getElementById('coachAdvice');
+            const hint = document.getElementById('nextLevelHint');
+            const streak = getWritingStreak();
+            const currentLevelData = getCurrentLevel();
+            
+            if (streak >= 7) {
+                advice.textContent = "대단한 꾸준함이네요! 이제 글쓰기가 자연스러운 습관이 되어가고 있습니다.";
+            } else if (streak >= 3) {
+                advice.textContent = "좋은 흐름이에요! 연속 기록을 유지하면서 글 근육을 단단히 만들어가세요.";
+            } else if (weekStats.completedDays >= 4) {
+                advice.textContent = "이번 주 잘 하고 있어요. 꾸준함이 재능을 이깁니다.";
+            } else {
+                advice.textContent = "괜찮아요. 작은 시작이 큰 변화를 만듭니다. 오늘 5분만 써보세요.";
+            }
+            
+            const remainingDays = currentLevelData.daysRequired - state.levelProgress;
+            if (remainingDays > 0) {
+                hint.textContent = `💡 ${remainingDays}일 더 연속으로 달성하면 다음 레벨로 승급!`;
+            } else {
+                hint.textContent = "🎉 레벨업 조건 달성! 내일까지 유지하면 승급합니다!";
+            }
+        }
+
+        function updateWritingProgress() {
+            updateWritingStatus();
+        }
+
+        // 글쓰기 완료 토글
+        function toggleWritingHabit() {
+            const dateKey = getDateKey(state.currentDate);
+            const minutes = parseInt(document.getElementById('writingMinutes').value) || 0;
+            
+            if (!state.habitData[dateKey]) {
+                state.habitData[dateKey] = {};
+            }
+            
+            if (!state.habitData[dateKey].writing) {
+                state.habitData[dateKey].writing = { completed: false, minutes: 0 };
+            }
+            
+            if (state.habitData[dateKey].writing.completed) {
+                // 완료 취소
+                state.habitData[dateKey].writing.completed = false;
+                state.habitData[dateKey].writing.minutes = 0;
+                document.getElementById('writingMinutes').value = '';
+            } else {
+                // 완료 체크
+                state.habitData[dateKey].writing.completed = true;
+                state.habitData[dateKey].writing.minutes = Math.max(minutes, 1);
+            }
+            
+            localStorage.setItem('habitData', JSON.stringify(state.habitData));
+            checkLevelUp();
+            updateUI();
+        }
+
+        // 보조 습관 토글
         function toggleHabit(habitId) {
             const dateKey = getDateKey(state.currentDate);
             
@@ -543,380 +543,205 @@
             updateUI();
         }
 
-        // Google Sheets API로 데이터 가져오기
-        async function loadDataFromAPI() {
-            if (!state.apiKey || !state.sheetId) {
-                throw new Error('API 키와 시트 ID가 필요합니다');
-            }
-
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/${state.sheetRange}?key=${state.apiKey}`;
-            
-            showStatus('Google Sheets API로 데이터를 가져오는 중...', 'info');
-            
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`API 오류: ${errorData.error?.message || response.statusText}`);
-            }
-            
-            const data = await response.json();
-            return parseGoogleSheetsData(data);
-        }
-
-        // CSV URL로 데이터 가져오기
-        async function loadDataFromCSV() {
-            if (!state.csvUrl) {
-                throw new Error('CSV URL이 필요합니다');
-            }
-
-            showStatus('CSV에서 데이터를 가져오는 중...', 'info');
-            
-            try {
-                const response = await fetch(state.csvUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: CSV에 접근할 수 없습니다`);
-                }
-                
-                const csvText = await response.text();
-                return parseCSVData(csvText);
-            } catch (err) {
-                // CORS 오류가 발생할 경우 프록시 서버 시도
-                if (err.message.includes('CORS') || err.name === 'TypeError') {
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(state.csvUrl)}`;
-                    const response = await fetch(proxyUrl);
-                    const data = await response.json();
-                    return parseCSVData(data.contents);
-                }
-                throw err;
-            }
-        }
-
-        // Google Sheets API 응답 데이터 파싱
-        function parseGoogleSheetsData(data) {
-            console.log('Google Sheets API 응답:', data);
-            
-            if (!data.values || data.values.length < 2) {
-                throw new Error('시트에 데이터가 없습니다');
-            }
-            
-            const headers = data.values[0];
-            const rows = data.values.slice(1);
-            
-            console.log('헤더:', headers);
-            console.log('데이터 행 수:', rows.length);
-            
-            // 헤더 검증
-            const expectedColumns = ['Date', 'Novel', 'Exercise', 'Japanese', 'Blog'];
-            const hasValidHeader = expectedColumns.every(col => headers.includes(col));
-            
-            if (!hasValidHeader) {
-                throw new Error(`시트 헤더가 올바르지 않습니다. 필요한 컬럼: ${expectedColumns.join(', ')}`);
-            }
-            
-            const parsedData = {};
-            
-            rows.forEach((row, index) => {
-                if (row.length >= 5 && row[0]) {
-                    try {
-                        const dateStr = row[0];
-                        const date = new Date(dateStr);
-                        
-                        if (isNaN(date.getTime())) {
-                            console.warn(`잘못된 날짜 형식: ${dateStr}`);
-                            return;
-                        }
-                        
-                        const normalizedDate = getDateKey(date);
-                        
-                        parsedData[normalizedDate] = {
-                            novel: String(row[1]).toUpperCase() === 'TRUE',
-                            exercise: String(row[2]).toUpperCase() === 'TRUE',
-                            japanese: String(row[3]).toUpperCase() === 'TRUE',
-                            blog: String(row[4]).toUpperCase() === 'TRUE'
-                        };
-                        
-                        console.log(`파싱됨: ${normalizedDate} =`, parsedData[normalizedDate]);
-                        
-                    } catch (err) {
-                        console.warn(`행 ${index + 2} 파싱 오류:`, err);
-                    }
-                }
-            });
-            
-            return parsedData;
-        }
-
-        // CSV 데이터 파싱
-        function parseCSVData(csvText) {
-            console.log('CSV 파싱 시작:', csvText.substring(0, 200) + '...');
-            
-            const lines = csvText.split('\n').filter(line => line.trim());
-            if (lines.length < 2) {
-                throw new Error('CSV 파일에 데이터가 없습니다');
-            }
-            
-            const header = lines[0].split(',').map(col => col.trim().replace(/"/g, ''));
-            console.log('헤더:', header);
-            
-            // 헤더 검증
-            const expectedColumns = ['Date', 'Novel', 'Exercise', 'Japanese', 'Blog'];
-            const hasValidHeader = expectedColumns.every(col => header.includes(col));
-            
-            if (!hasValidHeader) {
-                throw new Error(`CSV 헤더가 올바르지 않습니다. 필요한 컬럼: ${expectedColumns.join(', ')}`);
-            }
-            
-            const data = {};
-            
-            // 데이터 행 파싱
-            for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(',').map(col => col.trim().replace(/"/g, ''));
-                
-                if (cols.length >= 5 && cols[0]) {
-                    const dateStr = cols[0];
-                    
-                    try {
-                        const date = new Date(dateStr);
-                        if (isNaN(date.getTime())) {
-                            console.warn(`잘못된 날짜 형식: ${dateStr}`);
-                            continue;
-                        }
-                        const normalizedDate = getDateKey(date);
-                        
-                        data[normalizedDate] = {
-                            novel: cols[1].toUpperCase() === 'TRUE',
-                            exercise: cols[2].toUpperCase() === 'TRUE',
-                            japanese: cols[3].toUpperCase() === 'TRUE',
-                            blog: cols[4].toUpperCase() === 'TRUE'
-                        };
-                        
-                        console.log(`파싱됨: ${normalizedDate} =`, data[normalizedDate]);
-                    } catch (err) {
-                        console.warn(`날짜 파싱 오류: ${dateStr}`, err);
-                        continue;
-                    }
-                }
-            }
-            
-            return data;
-        }
-
-        // 데이터 동기화
-        async function syncData() {
-            try {
-                let importedData;
-                
-                if (state.connectionMode === 'api') {
-                    importedData = await loadDataFromAPI();
-                } else if (state.connectionMode === 'csv') {
-                    importedData = await loadDataFromCSV();
-                } else {
-                    showStatus('연결된 구글 시트가 없습니다', 'error');
-                    return;
-                }
-                
-                // 기존 로컬 데이터와 병합 (로컬 데이터 우선)
-                const mergedData = { ...importedData, ...state.habitData };
-                state.habitData = mergedData;
-                localStorage.setItem('habitData', JSON.stringify(state.habitData));
-                
-                state.lastSync = new Date();
-                
-                showStatus(`${Object.keys(importedData).length}개 항목을 동기화했습니다`, 'success');
-                updateUI();
-                
-            } catch (err) {
-                console.error('동기화 오류:', err);
-                showStatus(`동기화 실패: ${err.message}`, 'error');
-            }
-        }
-
-        // Google Sheets API로 연결
-        async function connectWithAPI() {
-            const apiKey = document.getElementById('apiKeyInput').value.trim();
-            const sheetId = document.getElementById('sheetIdInput').value.trim();
-            const sheetRange = document.getElementById('sheetRangeInput').value.trim() || 'Sheet1!A:E';
-            
-            if (!apiKey || !sheetId) {
-                showStatus('API 키와 시트 ID를 모두 입력해주세요', 'error');
-                return;
-            }
-            
-            // 설정 저장
-            state.apiKey = apiKey;
-            state.sheetId = sheetId;
-            state.sheetRange = sheetRange;
-            state.connectionMode = 'api';
-            
-            localStorage.setItem('googleApiKey', apiKey);
-            localStorage.setItem('googleSheetId', sheetId);
-            localStorage.setItem('googleSheetRange', sheetRange);
-            
-            try {
-                await syncData();
-                hideSetup();
-            } catch (err) {
-                state.connectionMode = 'local';
-                showStatus(`API 연결 실패: ${err.message}`, 'error');
-            }
-        }
-
-        // CSV URL로 연결
-        async function connectWithCSV() {
-            const csvUrl = document.getElementById('csvUrlInput').value.trim();
-            
-            if (!csvUrl) {
-                showStatus('CSV URL을 입력해주세요', 'error');
-                return;
-            }
-            
-            // 설정 저장
-            state.csvUrl = csvUrl;
-            state.connectionMode = 'csv';
-            
-            localStorage.setItem('googleCsvUrl', csvUrl);
-            
-            try {
-                await syncData();
-                hideSetup();
-            } catch (err) {
-                state.connectionMode = 'local';
-                showStatus(`CSV 연결 실패: ${err.message}`, 'error');
-            }
-        }
-
         // 데이터 내보내기
         function exportData() {
-            const csvLines = ['Date,Novel,Exercise,Japanese,Blog'];
+            const exportData = {
+                habitData: state.habitData,
+                currentLevel: state.currentLevel,
+                levelProgress: state.levelProgress,
+                exportDate: new Date().toISOString()
+            };
             
-            Object.keys(state.habitData).sort().forEach(date => {
-                const habits = state.habitData[date];
-                const line = [
-                    date,
-                    habits.novel ? 'TRUE' : 'FALSE',
-                    habits.exercise ? 'TRUE' : 'FALSE',
-                    habits.japanese ? 'TRUE' : 'FALSE',
-                    habits.blog ? 'TRUE' : 'FALSE'
-                ].join(',');
-                csvLines.push(line);
-            });
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
             
-            const csvContent = csvLines.join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
+            const fileName = `writing_habits_${new Date().toISOString().split('T')[0]}.json`;
             
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `habit_tracker_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = fileName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            showStatus('데이터가 CSV 파일로 내보내졌습니다', 'success');
+            URL.revokeObjectURL(link.href);
         }
 
-        // 모달 표시/숨김
-        function showSetup() {
-            document.getElementById('setupModal').classList.remove('hidden');
+        // CSV 데이터 가져오기
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
             
-            // 저장된 설정값 로드
-            document.getElementById('apiKeyInput').value = state.apiKey;
-            document.getElementById('sheetIdInput').value = state.sheetId;
-            document.getElementById('sheetRangeInput').value = state.sheetRange;
-            document.getElementById('csvUrlInput').value = state.csvUrl;
-        }
-
-        function hideSetup() {
-            document.getElementById('setupModal').classList.add('hidden');
-        }
-
-        // 상태 메시지 표시/숨김
-        function showStatus(message, type = 'info') {
-            const statusDiv = document.getElementById('statusMessage');
-            const statusText = document.getElementById('statusText');
-            const statusIcon = document.getElementById('statusIcon');
-            
-            statusText.textContent = message;
-            
-            // 타입별 스타일 설정
-            const styles = {
-                success: {
-                    class: 'bg-green-50 border border-green-200',
-                    icon: '✅',
-                    textClass: 'text-green-700'
-                },
-                error: {
-                    class: 'bg-red-50 border border-red-200',
-                    icon: '❌',
-                    textClass: 'text-red-700'
-                },
-                info: {
-                    class: 'bg-blue-50 border border-blue-200',
-                    icon: 'ℹ️',
-                    textClass: 'text-blue-700'
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csvText = e.target.result;
+                    const lines = csvText.split('\n').filter(line => line.trim());
+                    
+                    if (lines.length < 2) {
+                        alert('CSV 파일에 데이터가 없습니다.');
+                        return;
+                    }
+                    
+                    // 헤더 파싱
+                    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                    console.log('CSV 헤더:', headers);
+                    
+                    // 필요한 컬럼 확인
+                    const dateIndex = headers.findIndex(h => h.toLowerCase().includes('date'));
+                    const novelIndex = headers.findIndex(h => h.toLowerCase().includes('novel'));
+                    const exerciseIndex = headers.findIndex(h => h.toLowerCase().includes('exercise'));
+                    const japaneseIndex = headers.findIndex(h => h.toLowerCase().includes('japanese'));
+                    const blogIndex = headers.findIndex(h => h.toLowerCase().includes('blog'));
+                    
+                    if (dateIndex === -1) {
+                        alert('CSV 파일에서 Date 컬럼을 찾을 수 없습니다.');
+                        return;
+                    }
+                    
+                    const convertedData = {};
+                    let convertedCount = 0;
+                    
+                    // 데이터 행 처리
+                    for (let i = 1; i < lines.length; i++) {
+                        const cols = lines[i].split(',').map(col => col.trim().replace(/"/g, ''));
+                        
+                        if (cols.length > dateIndex && cols[dateIndex]) {
+                            try {
+                                const dateStr = cols[dateIndex];
+                                const date = new Date(dateStr);
+                                
+                                if (isNaN(date.getTime())) {
+                                    console.warn(`잘못된 날짜 형식: ${dateStr}`);
+                                    continue;
+                                }
+                                
+                                const dateKey = getDateKey(date);
+                                convertedData[dateKey] = {};
+                                
+                                // Novel -> Writing 변환
+                                if (novelIndex !== -1 && cols[novelIndex]) {
+                                    const isNovelDone = cols[novelIndex].toUpperCase() === 'TRUE';
+                                    convertedData[dateKey].writing = {
+                                        completed: isNovelDone,
+                                        minutes: isNovelDone ? 5 : 0
+                                    };
+                                    if (isNovelDone) convertedCount++;
+                                }
+                                
+                                // 다른 습관들
+                                if (exerciseIndex !== -1 && cols[exerciseIndex]) {
+                                    convertedData[dateKey].exercise = cols[exerciseIndex].toUpperCase() === 'TRUE';
+                                }
+                                if (japaneseIndex !== -1 && cols[japaneseIndex]) {
+                                    convertedData[dateKey].japanese = cols[japaneseIndex].toUpperCase() === 'TRUE';
+                                }
+                                if (blogIndex !== -1 && cols[blogIndex]) {
+                                    convertedData[dateKey].blog = cols[blogIndex].toUpperCase() === 'TRUE';
+                                }
+                                
+                            } catch (err) {
+                                console.warn(`행 ${i + 1} 처리 오류:`, err);
+                            }
+                        }
+                    }
+                    
+                    // 기존 데이터와 병합
+                    state.habitData = { ...state.habitData, ...convertedData };
+                    localStorage.setItem('habitData', JSON.stringify(state.habitData));
+                    
+                    updateUI();
+                    
+                    let message = `CSV 데이터를 성공적으로 가져왔습니다!\n${Object.keys(convertedData).length}개 날짜의 데이터를 처리했습니다.`;
+                    if (convertedCount > 0) {
+                        message += `\n${convertedCount}개의 소설 기록을 글쓰기 형식으로 변환했습니다.`;
+                    }
+                    
+                    alert(message);
+                    
+                } catch (error) {
+                    console.error('CSV 처리 오류:', error);
+                    alert('CSV 파일을 처리하는 중 오류가 발생했습니다: ' + error.message);
                 }
             };
-            
-            const style = styles[type] || styles.info;
-            statusDiv.firstElementChild.className = `rounded-lg p-4 ${style.class}`;
-            statusIcon.textContent = style.icon;
-            statusText.className = `font-medium ${style.textClass}`;
-            
-            statusDiv.classList.remove('hidden');
-            
-            // 성공 메시지는 3초 후 자동 숨김
-            if (type === 'success') {
-                setTimeout(() => {
-                    hideStatus();
-                }, 3000);
-            }
+            reader.readAsText(file);
+            event.target.value = '';
         }
 
-        function hideStatus() {
-            document.getElementById('statusMessage').classList.add('hidden');
+        // 데이터 가져오기 (호환성 처리 포함)
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // 데이터 검증 및 변환
+                    if (importedData.habitData) {
+                        // 이전 형식 데이터 변환 (novel -> writing)
+                        const convertedData = {};
+                        Object.keys(importedData.habitData).forEach(dateKey => {
+                            const dayData = importedData.habitData[dateKey];
+                            convertedData[dateKey] = { ...dayData };
+                            
+                            // 이전 novel 형식을 새 writing 형식으로 변환
+                            if (dayData.novel !== undefined) {
+                                convertedData[dateKey].writing = {
+                                    completed: dayData.novel,
+                                    minutes: dayData.novel ? 5 : 0  // 기본값으로 5분 설정
+                                };
+                                delete convertedData[dateKey].novel;
+                            }
+                        });
+                        
+                        // 기존 데이터와 병합
+                        state.habitData = { ...state.habitData, ...convertedData };
+                        localStorage.setItem('habitData', JSON.stringify(state.habitData));
+                    }
+                    
+                    if (importedData.currentLevel) {
+                        state.currentLevel = importedData.currentLevel;
+                        localStorage.setItem('currentLevel', state.currentLevel.toString());
+                    }
+                    
+                    if (importedData.levelProgress !== undefined) {
+                        state.levelProgress = importedData.levelProgress;
+                        localStorage.setItem('levelProgress', state.levelProgress.toString());
+                    }
+                    
+                    updateUI();
+                    
+                    // 변환된 항목 개수 표시
+                    const convertedCount = Object.keys(importedData.habitData || {}).filter(
+                        dateKey => importedData.habitData[dateKey].novel !== undefined
+                    ).length;
+                    
+                    let message = '데이터를 성공적으로 가져왔습니다!';
+                    if (convertedCount > 0) {
+                        message += `\n${convertedCount}개의 이전 소설 기록을 새 형식으로 변환했습니다.`;
+                    }
+                    
+                    alert(message);
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('파일 형식이 올바르지 않습니다.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
         }
 
         // 초기화
         function init() {
-            console.log('앱 초기화 시작');
-            
-            // 저장된 연결 설정 복원
-            if (state.apiKey && state.sheetId) {
-                state.connectionMode = 'api';
-                console.log('Google Sheets API 설정 발견');
-            } else if (state.csvUrl) {
-                state.connectionMode = 'csv';
-                console.log('CSV URL 설정 발견');
-            }
-            
-            // 초기 UI 업데이트
+            console.log('글 근육 훈련소 시작');
             updateUI();
-            
             console.log('초기화 완료');
         }
 
         // DOM 로드 완료 후 초기화
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM 로드 완료');
             setTimeout(init, 100);
-        });
-
-        // 전역 오류 처리
-        window.addEventListener('error', function(e) {
-            console.error('전역 오류:', e.error);
-            showStatus('앱 실행 중 오류가 발생했습니다: ' + e.error.message, 'error');
-        });
-
-        // 약속 거부 오류 처리
-        window.addEventListener('unhandledrejection', function(e) {
-            console.error('처리되지 않은 약속 거부:', e.reason);
-            if (e.reason.toString().includes('fetch')) {
-                showStatus('네트워크 연결 오류입니다. 연결 설정을 확인해주세요.', 'error');
-            } else {
-                showStatus('데이터 처리 중 오류가 발생했습니다', 'error');
-            }
         });
     </script>
 </body>
