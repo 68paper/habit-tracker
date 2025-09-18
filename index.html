@@ -107,7 +107,7 @@
                             <div class="font-semibold">Lv.3</div>
                             <div>15분</div>
                         </div>
-                        <div id="writing-level-max" class="p-2 bg-gray-100 rounded text-center">
+                        <div id="writing-level-11" class="p-2 bg-gray-100 rounded text-center">
                             <div class="font-semibold">Lv.∞</div>
                             <div>4시간</div>
                         </div>
@@ -125,7 +125,7 @@
                             <div class="font-semibold">Lv.3</div>
                             <div>20회</div>
                         </div>
-                        <div id="exercise-level-max" class="p-2 bg-gray-100 rounded text-center">
+                        <div id="exercise-level-6" class="p-2 bg-gray-100 rounded text-center">
                             <div class="font-semibold">Lv.∞</div>
                             <div>100회</div>
                         </div>
@@ -139,7 +139,7 @@
                         </button>
                         <div class="text-center">
                             <h2 id="currentDateText" class="text-xl font-semibold text-gray-800"></h2>
-                            <p class="text-sm text-gray-500">9월 1일부터 시작!</p>
+                            <button onclick="goToToday()" class="text-sm text-blue-500 hover:text-blue-700 mt-1">오늘로 이동</button>
                         </div>
                         <button onclick="changeDate(1)" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
                             다음 →
@@ -175,7 +175,7 @@
                     <div class="mb-4">
                         <h4 class="text-sm font-medium text-gray-700 mb-3">오늘의 작업 기록</h4>
                         <div id="sessionsContainer" class="space-y-2 mb-3">
-                            </div>
+                        </div>
                         
                         <div id="totalSummary" class="p-3 bg-blue-50 rounded-lg border border-blue-200">
                             <div class="flex justify-between items-center">
@@ -246,7 +246,7 @@
                     <div class="mb-4">
                         <h4 class="text-sm font-medium text-gray-700 mb-3">오늘의 운동 기록</h4>
                         <div id="exerciseSessionsContainer" class="space-y-2 mb-3">
-                            </div>
+                        </div>
                         
                         <div id="exerciseTotalSummary" class="p-3 bg-green-50 rounded-lg border border-green-200">
                             <div class="flex justify-between items-center">
@@ -405,7 +405,7 @@
             currentExerciseLevel: parseInt(localStorage.getItem('currentExerciseLevel') || '1')
         };
 
-        const habits = ['japanese', 'blog']; // 'exercise'는 세션 기반으로 분리
+        const habits = ['japanese', 'blog'];
 
         // 유틸리티 함수들
         function getDateKey(date) {
@@ -434,6 +434,11 @@
 
         function getCurrentLevel() {
             return WRITING_LEVELS.find(level => level.level === state.currentLevel) || WRITING_LEVELS[0];
+        }
+
+        function goToToday() {
+            state.currentDate = new Date();
+            updateUI();
         }
 
         // 입력 검증 함수
@@ -465,11 +470,9 @@
         function validateAndFixWritingData(data) {
             if (!data) return createEmptyWritingData();
             
-            // 기본 구조 확인 및 생성
             if (!data.sessions) data.sessions = [];
             if (typeof data.completed !== 'boolean') data.completed = false;
             
-            // 세션 데이터 검증
             data.sessions = data.sessions.filter(session => {
                 return session && 
                        typeof session.timestamp === 'number' && 
@@ -479,7 +482,6 @@
                        session.characters >= 0;
             });
             
-            // 총합 재계산
             data.totalMinutes = data.sessions.reduce((sum, s) => sum + s.minutes, 0);
             data.totalCharacters = data.sessions.reduce((sum, s) => sum + s.characters, 0);
             
@@ -499,7 +501,6 @@
             const dateKey = getDateKey(date);
             const rawData = state.habitData[dateKey]?.writing;
             
-            // 이전 형식 호환성 처리
             if (rawData && rawData.minutes !== undefined && !rawData.sessions) {
                 const convertedData = {
                     completed: rawData.completed || false,
@@ -512,7 +513,6 @@
                     totalCharacters: rawData.characters || 0
                 };
                 
-                // 변환된 데이터로 업데이트
                 saveWritingData(date, convertedData);
                 return convertedData;
             }
@@ -534,7 +534,6 @@
                     state.habitData[dateKey] = {};
                 }
                 
-                // 데이터 검증 후 저장
                 state.habitData[dateKey].writing = validateAndFixWritingData(writingData);
                 localStorage.setItem('habitData', JSON.stringify(state.habitData));
                 
@@ -554,7 +553,6 @@
             return state.habitData[dateKey]?.[habitId] || false;
         }
         
-        // 운동 습관의 경우, 세션이 1개라도 있으면 완료로 간주
         function isExerciseDone() {
             const dateKey = getDateKey(state.currentDate);
             const exerciseData = state.habitData[dateKey]?.exercise;
@@ -657,26 +655,63 @@
             };
         }
 
-        // 알림 시스템
         function showNotification(message, type = 'info') {
-            // 간단한 알림 시스템 (나중에 더 예쁘게 만들 수 있음)
             if (type === 'error') {
                 alert('오류: ' + message);
             } else {
                 console.log(message);
             }
         }
+        
+        // 글쓰기 세션 관련 함수들
+        function renderSessions() {
+            const container = document.getElementById('sessionsContainer');
+            const writingData = getWritingData(state.currentDate);
+            
+            if (writingData.sessions.length === 0) {
+                container.innerHTML = '<div class="text-sm text-gray-500 text-center py-4">아직 작업 기록이 없습니다. 첫 세션을 추가해보세요!</div>';
+                return;
+            }
+            
+            const sortedSessions = [...writingData.sessions].sort((a, b) => a.timestamp - b.timestamp);
+            
+            container.innerHTML = sortedSessions.map((session, originalIndex) => {
+                const realIndex = writingData.sessions.findIndex(s => s.timestamp === session.timestamp);
+                const time = formatTime(session.timestamp);
+                
+                return `
+                    <div class="session-item flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span class="text-sm font-medium text-gray-800">${time} 세션</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="text-sm text-gray-600">
+                                <span class="font-medium">${session.minutes}분</span>
+                                ${session.characters > 0 ? ` · <span class="font-medium">${session.characters.toLocaleString()}자</span>` : ''}
+                            </div>
+                            <div class="flex space-x-1">
+                                <button onclick="editSession(${realIndex})" class="text-blue-500 hover:text-blue-700 text-xs px-2 py-1 rounded" title="수정">
+                                    ✏️
+                                </button>
+                                <button onclick="removeSession(${realIndex})" class="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded" title="삭제">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
 
-        // 세션 관련 함수들
         function addSession() {
             try {
                 const minutesValue = document.getElementById('sessionMinutes').value;
                 const charactersValue = document.getElementById('sessionCharacters').value;
                 
                 const minutes = parseInt(minutesValue) || 0;
-                const characters = parseInt(charactersValue) || 0;
+                const characters = charactersValue === '' ? 0 : parseInt(charactersValue) || 0;
                 
-                // 입력 검증
                 const errors = validateSessionInput(minutes, characters);
                 if (errors.length > 0) {
                     alert(errors.join('\n'));
@@ -691,13 +726,10 @@
                 };
                 
                 writingData.sessions.push(newSession);
-                
-                // 총합 증분 업데이트 (성능 개선)
                 writingData.totalMinutes += minutes;
                 writingData.totalCharacters += characters;
                 
                 if (saveWritingData(state.currentDate, writingData)) {
-                    // 입력 필드 초기화
                     document.getElementById('sessionMinutes').value = '';
                     document.getElementById('sessionCharacters').value = '';
                     
@@ -731,7 +763,6 @@
                     return;
                 }
                 
-                // 이전 값 빼고 새 값 더하기 (증분 업데이트)
                 writingData.totalMinutes = writingData.totalMinutes - session.minutes + minutes;
                 writingData.totalCharacters = writingData.totalCharacters - session.characters + characters;
                 
@@ -758,13 +789,11 @@
                 
                 const session = writingData.sessions[index];
                 
-                // 총합에서 제거할 세션 값 빼기 (증분 업데이트)
                 writingData.totalMinutes -= session.minutes;
                 writingData.totalCharacters -= session.characters;
                 
                 writingData.sessions.splice(index, 1);
                 
-                // 세션이 없으면 완료 상태 해제
                 if (writingData.sessions.length === 0) {
                     writingData.completed = false;
                 }
@@ -808,7 +837,7 @@
             }
         }
 
-        // 운동 기록 함수들 (새로 추가)
+        // 운동 기록 함수들
         function addExerciseSession() {
             try {
                 const minutesValue = document.getElementById('exerciseMinutes').value;
@@ -989,27 +1018,58 @@
             localStorage.setItem('levelProgress', state.levelProgress.toString());
         }
 
+        // 일일 요약 업데이트
+        function updateDailySummary() {
+            const writingData = getWritingData(state.currentDate);
+            const currentLevel = getCurrentLevel();
+            
+            document.getElementById('dailyTotal').textContent = 
+                `${writingData.totalMinutes}분 · ${writingData.totalCharacters.toLocaleString()}자`;
+            
+            const remaining = Math.max(0, currentLevel.minutes - writingData.totalMinutes);
+            if (remaining > 0) {
+                document.getElementById('goalStatus').textContent = `목표까지 ${remaining}분 필요`;
+            } else {
+                document.getElementById('goalStatus').textContent = '✅ 목표 달성!';
+            }
+        }
+
+        function updateDayCompleteButton() {
+            const writingData = getWritingData(state.currentDate);
+            const currentLevel = getCurrentLevel();
+            const btn = document.getElementById('dayCompleteBtn');
+            
+            if (writingData.completed) {
+                btn.className = 'w-full px-6 py-3 rounded-lg font-medium transition-all duration-200 bg-green-500 text-white';
+                btn.textContent = '✅ 오늘 목표 완료됨';
+            } else if (writingData.totalMinutes >= currentLevel.minutes) {
+                btn.className = 'w-full px-6 py-3 rounded-lg font-medium transition-all duration-200 bg-blue-500 text-white hover:bg-blue-600';
+                btn.textContent = '목표 달성 완료하기';
+            } else {
+                btn.className = 'w-full px-6 py-3 rounded-lg font-medium transition-all duration-200 bg-gray-200 text-gray-600';
+                btn.textContent = '오늘 목표 달성 완료';
+            }
+        }
+
         // UI 업데이트
         function updateUI() {
             try {
-                // 날짜 업데이트
                 document.getElementById('currentDateText').textContent = formatDate(state.currentDate);
                 
-                // 현재 글 근육 레벨 정보 업데이트
                 const currentLevelData = getCurrentLevel();
                 document.getElementById('currentLevel').textContent = currentLevelData.level;
                 document.getElementById('levelDescription').textContent = `${currentLevelData.title} (${currentLevelData.minutes}분)`;
                 document.getElementById('levelProgress').textContent = 
                     `다음 레벨까지: ${state.levelProgress}/${currentLevelData.daysRequired}일`;
                 
-                // 글쓰기 진행 바 업데이트
-                const progressPercentage = (state.levelProgress / currentLevelData.daysRequired) * 100;
+                const rawWritingProgress = (state.levelProgress / currentLevelData.daysRequired) * 100;
+                const progressPercentage = Math.min(rawWritingProgress, 100);
                 document.getElementById('progressBar').style.width = `${progressPercentage}%`;
                 
-                // 현재 운동 레벨 정보 업데이트
                 const currentExerciseLevelData = EXERCISE_LEVELS.find(level => level.level === state.currentExerciseLevel) || EXERCISE_LEVELS[0];
                 const totalExerciseStats = getTotalExerciseStats();
-                const progressExercisePercentage = (totalExerciseStats.totalSessions / currentExerciseLevelData.required) * 100;
+                const rawProgress = (totalExerciseStats.totalSessions / currentExerciseLevelData.required) * 100;
+                const progressExercisePercentage = Math.min(rawProgress, 100);
 
                 document.getElementById('currentExerciseLevel').textContent = currentExerciseLevelData.level;
                 document.getElementById('exerciseLevelDescription').textContent = `${currentExerciseLevelData.title}`;
@@ -1018,7 +1078,8 @@
 
                 // 레벨 미리보기 업데이트 (글쓰기)
                 WRITING_LEVELS.forEach((levelData) => {
-                    const levelBox = document.getElementById(`writing-level-${levelData.level}`);
+                    const levelId = levelData.level === 11 ? '11' : levelData.level;
+                    const levelBox = document.getElementById(`writing-level-${levelId}`);
                     if (levelBox) {
                         if (levelData.level === state.currentLevel) {
                             levelBox.className = "p-2 bg-blue-100 rounded text-center";
@@ -1030,7 +1091,8 @@
 
                 // 레벨 미리보기 업데이트 (운동)
                 EXERCISE_LEVELS.forEach((levelData) => {
-                    const levelBox = document.getElementById(`exercise-level-${levelData.level}`);
+                    const levelId = levelData.level === 6 ? '6' : levelData.level;
+                    const levelBox = document.getElementById(`exercise-level-${levelId}`);
                     if (levelBox) {
                         if (levelData.level === state.currentExerciseLevel) {
                             levelBox.className = "p-2 bg-green-100 rounded text-center";
@@ -1040,19 +1102,15 @@
                     }
                 });
                 
-                // 현재 목표 업데이트
                 document.getElementById('currentTarget').textContent = `${currentLevelData.minutes}분`;
                 
-                // 세션 렌더링
                 renderSessions();
                 updateDailySummary();
                 updateDayCompleteButton();
 
-                // 운동 기록 렌더링 및 요약
                 renderExerciseSessions();
                 updateExerciseSummary();
                 
-                // 연속 기록 및 주간 통계
                 document.getElementById('novel-streak').textContent = getWritingStreak();
                 document.getElementById('exercise-streak').textContent = getExerciseStreak();
                 
@@ -1061,24 +1119,22 @@
                 const weeklyExerciseStats = getWeeklyExerciseStats();
                 
                 document.getElementById('novel-week').textContent = weekStats.completedDays;
+                document.getElementById('exercise-week').textContent = weeklyExerciseStats.completedDays;
                 document.getElementById('weeklyMinutes').textContent = weekStats.totalMinutes;
                 document.getElementById('averageMinutes').textContent = weekStats.averageMinutes;
                 document.getElementById('weeklyCharacters').textContent = weekStats.totalCharacters.toLocaleString();
                 document.getElementById('averageCharacters').textContent = weekStats.averageCharacters.toLocaleString();
                 
-                // 성장 지표 업데이트
                 document.getElementById('charactersPerMinute').textContent = 
                     totalStats.charactersPerMinute > 0 ? `${totalStats.charactersPerMinute}자/분` : '-';
                 document.getElementById('dailyBest').textContent = `${totalStats.maxDailyCharacters.toLocaleString()}자`;
                 document.getElementById('longestStreak').textContent = `${getLongestStreak()}일`;
                 document.getElementById('totalCharacters').textContent = `${totalStats.totalCharacters.toLocaleString()}자`;
                 
-                // 진행상황 계산
                 const todayWriting = getWritingData(state.currentDate);
                 const completedToday = habits.filter(h => isHabitDone(h)).length + (todayWriting.completed ? 1 : 0) + (isExerciseDone() ? 1 : 0);
                 document.getElementById('progressText').textContent = `오늘 완료: ${completedToday}/4`;
                 
-                // 보조 습관 버튼 업데이트
                 habits.forEach(habit => {
                     const btn = document.getElementById(`${habit}-btn`);
                     const isDone = isHabitDone(habit);
@@ -1096,7 +1152,6 @@
                     }
                 });
                 
-                // 코치 조언 업데이트
                 updateCoachAdvice(weekStats, completedToday, totalStats, weeklyExerciseStats);
                 
             } catch (error) {
@@ -1104,7 +1159,7 @@
                 showNotification('화면 업데이트 중 오류가 발생했습니다.', 'error');
             }
         }
-        
+
         function updateCoachAdvice(writingStats, completedToday, totalWritingStats, exerciseStats) {
             const advice = document.getElementById('coachAdvice');
             const hint = document.getElementById('nextLevelHint');
@@ -1113,7 +1168,6 @@
             const exerciseStreak = getExerciseStreak();
             const totalExerciseSessions = getTotalExerciseStats().totalSessions;
 
-            // 운동 관련 조언을 우선적으로 검토
             if (exerciseStats.completedDays >= 5) {
                 advice.textContent = `이번 주 ${exerciseStats.completedDays}회 운동 완료! 꾸준함이 심폐지구력을 키우고 있어요.`;
             } else if (exerciseStreak >= 3) {
@@ -1121,8 +1175,6 @@
             } else if (totalExerciseSessions >= 20) {
                 advice.textContent = `🎉 벌써 ${totalExerciseSessions}회 운동! 당신의 건강한 습관에 박수를 보냅니다.`;
             }
-            
-            // 글쓰기 관련 조언 (운동 조언보다 우선순위가 낮음)
             else if (totalWritingStats.totalCharacters > 100000) {
                 advice.textContent = `누적 ${totalWritingStats.totalCharacters.toLocaleString()}자 달성! 이제 진짜 프로 소설가의 모습이 보입니다.`;
             } else if (totalWritingStats.totalCharacters > 50000) {
@@ -1141,7 +1193,6 @@
                 advice.textContent = "괜찮아요. 작은 시작이 큰 변화를 만듭니다. 오늘부터 다시 시작해보세요.";
             }
             
-            // 다음 레벨 힌트 업데이트
             const currentLevelData = getCurrentLevel();
             const remainingDays = currentLevelData.daysRequired - writingStreak;
             
@@ -1187,9 +1238,9 @@
                     habitData: state.habitData,
                     currentLevel: state.currentLevel,
                     levelProgress: state.levelProgress,
-                    currentExerciseLevel: state.currentExerciseLevel, // 운동 레벨 추가
+                    currentExerciseLevel: state.currentExerciseLevel,
                     exportDate: new Date().toISOString(),
-                    version: '2.0' // 버전 정보 추가
+                    version: '2.0'
                 };
                 
                 const dataStr = JSON.stringify(exportData, null, 2);
@@ -1213,7 +1264,7 @@
             }
         }
 
-        // 데이터 가져오기 (강화된 호환성 처리)
+        // 데이터 가져오기
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1224,7 +1275,6 @@
                     const importedData = JSON.parse(e.target.result);
                     let convertedCount = 0;
                     
-                    // 데이터 검증 및 변환
                     if (importedData.habitData) {
                         const convertedData = {};
                         
@@ -1232,7 +1282,6 @@
                             const dayData = importedData.habitData[dateKey];
                             convertedData[dateKey] = { ...dayData };
                             
-                            // 이전 novel 형식을 새 writing 형식으로 변환
                             if (dayData.novel !== undefined) {
                                 convertedData[dateKey].writing = {
                                     completed: dayData.novel,
@@ -1248,7 +1297,6 @@
                                 convertedCount++;
                             }
                             
-                            // 이전 단일 기록을 세션 형식으로 변환
                             else if (convertedData[dateKey].writing && 
                                     convertedData[dateKey].writing.minutes !== undefined && 
                                     !convertedData[dateKey].writing.sessions) {
@@ -1267,13 +1315,11 @@
                                 convertedCount++;
                             }
                             
-                            // 데이터 검증 및 수정
                             if (convertedData[dateKey].writing) {
                                 convertedData[dateKey].writing = validateAndFixWritingData(convertedData[dateKey].writing);
                             }
                         });
                         
-                        // 기존 데이터와 병합
                         state.habitData = { ...state.habitData, ...convertedData };
                         localStorage.setItem('habitData', JSON.stringify(state.habitData));
                     }
@@ -1312,106 +1358,11 @@
             event.target.value = '';
         }
 
-        // 데이터 정합성 검사 및 수정
-        function performDataIntegrityCheck() {
-            let fixedCount = 0;
-            
-            Object.keys(state.habitData).forEach(dateKey => {
-                if (state.habitData[dateKey].writing) {
-                    const originalData = { ...state.habitData[dateKey].writing };
-                    const fixedData = validateAndFixWritingData(state.habitData[dateKey].writing);
-                    
-                    if (JSON.stringify(originalData) !== JSON.stringify(fixedData)) {
-                        state.habitData[dateKey].writing = fixedData;
-                        fixedCount++;
-                    }
-                }
-            });
-            
-            if (fixedCount > 0) {
-                localStorage.setItem('habitData', JSON.stringify(state.habitData));
-                console.log(`${fixedCount}개의 데이터 불일치를 수정했습니다.`);
-            }
-            
-            return fixedCount;
-        }
-
         // 초기화
         function init() {
             console.log('글 근육 훈련소 시작 - 개선된 세션 시스템 v2.0');
             
             try {
-                // 기존 데이터를 세션 형식으로 마이그레이션
-                let hasUpdated = false;
-                
-                Object.keys(state.habitData).forEach(dateKey => {
-                    const dayData = state.habitData[dateKey];
-                    
-                    // 이전 novel 형식 변환
-                    if (dayData.novel !== undefined) {
-                        dayData.writing = {
-                            completed: dayData.novel,
-                            sessions: dayData.novel ? [{
-                                timestamp: createTimestamp(new Date(dateKey), 9, 0),
-                                minutes: 5,
-                                characters: 0
-                            }] : [],
-                            totalMinutes: dayData.novel ? 5 : 0,
-                            totalCharacters: 0
-                        };
-                        delete dayData.novel;
-                        hasUpdated = true;
-                    }
-                    
-                    // 이전 단일 writing 형식 변환
-                    else if (dayData.writing && dayData.writing.minutes !== undefined && !dayData.writing.sessions) {
-                        const writing = dayData.writing;
-                        dayData.writing = {
-                            completed: writing.completed || false,
-                            sessions: writing.completed ? [{
-                                timestamp: createTimestamp(new Date(dateKey), 9, 0),
-                                minutes: writing.minutes || 0,
-                                characters: writing.characters || 0
-                            }] : [],
-                            totalMinutes: writing.minutes || 0,
-                            totalCharacters: writing.characters || 0
-                        };
-                        hasUpdated = true;
-                    }
-
-                    // 운동 기록 마이그레이션 (true/false -> 객체)
-                    if (dayData.exercise === true) {
-                        dayData.exercise = {
-                            sessions: [{
-                                timestamp: createTimestamp(new Date(dateKey), 9, 0),
-                                minutes: 30,
-                                calories: 200
-                            }],
-                            totalMinutes: 30,
-                            totalCalories: 200
-                        };
-                        hasUpdated = true;
-                    } else if (dayData.exercise === false) {
-                        dayData.exercise = {
-                            sessions: [],
-                            totalMinutes: 0,
-                            totalCalories: 0
-                        };
-                        hasUpdated = true;
-                    }
-                });
-                
-                if (hasUpdated) {
-                    localStorage.setItem('habitData', JSON.stringify(state.habitData));
-                    console.log('데이터 마이그레이션 완료');
-                }
-                
-                // 데이터 정합성 검사
-                const fixedCount = performDataIntegrityCheck();
-                if (fixedCount > 0) {
-                    console.log('데이터 정합성 검사 및 수정 완료');
-                }
-                
                 updateUI();
                 console.log('초기화 완료');
                 
@@ -1421,9 +1372,8 @@
             }
         }
 
-        // 키보드 단축키 추가
+        // 키보드 단축키
         document.addEventListener('keydown', function(event) {
-            // Ctrl+Enter 또는 Cmd+Enter로 세션 추가
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
                 event.preventDefault();
                 addSession();
