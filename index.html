@@ -847,90 +847,98 @@
 
         // 사용자 정의 습관 렌더링
         function renderCustomHabits() {
-            const container = document.getElementById('customHabitsContainer');
-            if (!container) return; 
-            
-            const totalHabits = customHabits.length;
+    const container = document.getElementById('customHabitsContainer');
+    if (!container) return; 
+    
+    const totalHabits = customHabits.length;
 
-            if (totalHabits === 0) {
-                container.innerHTML = `
-                    <div class="bg-white rounded-lg shadow-md p-4 border-2 border-dashed border-gray-300">
-                        <div class="text-center">
-                            <p class="text-gray-600 mb-3">나만의 습관을 추가해보세요!</p>
-                            <button onclick="addCustomHabit()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
-                                + 새 습관 추가
-                            </button>
+    if (totalHabits === 0) {
+        container.innerHTML = `
+            <div class="bg-white rounded-lg shadow-md p-4 border-2 border-dashed border-gray-300">
+                <div class="text-center">
+                    <p class="text-gray-600 mb-3">나만의 습관을 추가해보세요!</p>
+                    <button onclick="addCustomHabit()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
+                        + 새 습관 추가
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    let habitHTML = customHabits.map(habit => {
+        const colorClasses = {
+            blue: 'bg-blue-500 border-blue-200',
+            green: 'bg-green-500 border-green-200',
+            red: 'bg-red-500 border-red-200',
+            purple: 'bg-purple-500 border-purple-200',
+            yellow: 'bg-yellow-500 border-yellow-200',
+            pink: 'bg-pink-500 border-pink-200',
+            indigo: 'bg-indigo-500 border-indigo-200'
+        };
+        
+        // 💡 수정된 안전 로직 시작: 유효성 검사 및 기본값 설정
+        const safeColor = colorClasses[habit.color] ? habit.color : 'blue';
+        const classes = colorClasses[safeColor];
+        const classParts = classes.split(' ');
+        
+        const isDone = isCustomHabitDone(habit.id);
+        const btnClass = isDone 
+            ? classes // 유효한 클래스 문자열 사용
+            : 'bg-gray-200 border-gray-200';
+        // 💡 수정된 안전 로직 종료
+        
+        let statusText = habit.description || '반복적인 활동';
+        let extraControls = '';
+        
+        if (habit.type === 'level') {
+            const stats = getCustomHabitStats(habit.id);
+            const currentLevelData = habit.levels.find(l => l.level === habit.currentLevel) || habit.levels[0];
+            const nextLevel = habit.levels.find(l => l.level === habit.currentLevel + 1);
+            const nextRequired = nextLevel ? nextLevel.required : currentLevelData.required;
+
+            statusText = `Lv.${habit.currentLevel} | 다음 레벨까지: ${stats.totalCount} / ${nextRequired}회`;
+            extraControls = `
+                <button onclick="addCustomHabitCount('${habit.id}')" class="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors" title="횟수 추가">+1</button>
+            `;
+        }
+        
+        return `
+            <div class="bg-white rounded-lg shadow-md p-4 border-l-4 ${classParts[1]}">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-3 h-3 rounded-full ${classParts[0]}"></div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${habit.name}</h4>
+                            <p class="text-xs text-gray-600">${statusText}</p>
                         </div>
                     </div>
-                `;
-                return;
-            }
-            
-            let habitHTML = customHabits.map(habit => {
-                const colorClasses = {
-                    blue: 'bg-blue-500 border-blue-200',
-                    green: 'bg-green-500 border-green-200',
-                    red: 'bg-red-500 border-red-200',
-                    purple: 'bg-purple-500 border-purple-200',
-                    yellow: 'bg-yellow-500 border-yellow-200',
-                    pink: 'bg-pink-500 border-pink-200',
-                    indigo: 'bg-indigo-500 border-indigo-200'
-                };
-                
-                const isDone = isCustomHabitDone(habit.id);
-                const btnClass = isDone ? colorClasses[habit.color] : 'bg-gray-200 border-gray-200';
-                
-                let statusText = habit.description || '반복적인 활동';
-                let extraControls = '';
-                
-                if (habit.type === 'level') {
-                    const stats = getCustomHabitStats(habit.id);
-                    const currentLevelData = habit.levels.find(l => l.level === habit.currentLevel) || habit.levels[0];
-                    const nextLevel = habit.levels.find(l => l.level === habit.currentLevel + 1);
-                    const nextRequired = nextLevel ? nextLevel.required : currentLevelData.required;
-
-                    statusText = `Lv.${habit.currentLevel} | 다음 레벨까지: ${stats.totalCount} / ${nextRequired}회`;
-                    extraControls = `
-                        <button onclick="addCustomHabitCount('${habit.id}')" class="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors" title="횟수 추가">+1</button>
-                    `;
-                }
-                
-                return `
-                    <div class="bg-white rounded-lg shadow-md p-4 border-l-4 ${colorClasses[habit.color].split(' ')[1]}">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-3 h-3 rounded-full ${colorClasses[habit.color].split(' ')[0]}"></div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">${habit.name}</h4>
-                                    <p class="text-xs text-gray-600">${statusText}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                ${extraControls}
-                                ${habit.type === 'simple' ? `
-                                    <button onclick="toggleCustomHabit('${habit.id}')" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${btnClass} ${isDone ? 'text-white shadow-lg' : 'text-gray-500 hover:bg-gray-300'}">
-                                        <span class="text-xl">${isDone ? '✓' : '✗'}</span>
-                                    </button>` : ''
-                                }
-                                <button onclick="removeCustomHabit('${habit.id}')" class="text-red-400 hover:text-red-600 text-xs" title="습관 삭제">✕</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            habitHTML += `
-                <div class="bg-white rounded-lg shadow-md p-4 border-2 border-dashed border-gray-300">
-                    <div class="text-center">
-                        <button onclick="addCustomHabit()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
-                            + 새 습관 추가
-                        </button>
+                    <div class="flex items-center space-x-2">
+                        ${extraControls}
+                        ${habit.type === 'simple' ? `
+                            <button onclick="toggleCustomHabit('${habit.id}')" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${btnClass} ${isDone ? 'text-white shadow-lg' : 'text-gray-500 hover:bg-gray-300'}">
+                                <span class="text-xl">${isDone ? '✓' : '✗'}</span>
+                            </button>` : ''
+                        }
+                        <button onclick="removeCustomHabit('${habit.id}')" class="text-red-400 hover:text-red-600 text-xs" title="습관 삭제">✕</button>
                     </div>
                 </div>
-            `;
-            
-            container.innerHTML = habitHTML;
-        }
+            </div>
+        `;
+    }).join('');
+    
+    habitHTML += `
+        <div class="bg-white rounded-lg shadow-md p-4 border-2 border-dashed border-gray-300">
+            <div class="text-center">
+                <button onclick="addCustomHabit()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
+                    + 새 습관 추가
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = habitHTML;
+}
         
         // UI에서 습관 관련 부분을 업데이트
         function updateCustomHabitsInUI() {
