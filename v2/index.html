@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글 근육 습관 추적기</title>
+    <meta name="description" content="프로작가를 향한 여정 - 글 근육을 키우는 점진적 훈련">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'korean': ['Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        * {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
+        body { 
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            line-height: 1.6;
+        }
+        .animate-pulse-gentle {
+            animation: pulse-gentle 2s infinite;
+        }
+        @keyframes pulse-gentle {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        .session-item {
+            transition: all 0.3s ease;
+        }
+        .session-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .streak-flame {
+            animation: flame 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes flame {
+            0% { transform: rotate(-2deg) scale(1); }
+            100% { transform: rotate(2deg) scale(1.05); }
+        }
+        .streak-number {
+            text-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+        }
+        .freeze-icon {
+            animation: freeze-glow 2s ease-in-out infinite;
+        }
+        @keyframes freeze-glow {
+            0%, 100% { filter: drop-shadow(0 0 5px #3b82f6); }
+            50% { filter: drop-shadow(0 0 15px #1d4ed8); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">📝 글 근육 훈련소</h1>
+                    <p class="text-gray-600">작가의 체력을 단계별로 키우는 여정 💪</p>
+                    
+                    <div class="flex items-center justify-center space-x-4 mt-4">
+                        <button onclick="exportData()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm">
+                            📥 데이터 다운로드
+                        </button>
+                        <label class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm cursor-pointer">
+                            📤 데이터 업로드
+                            <input type="file" accept=".json" onchange="importData(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-l-4 border-orange-500">
+                    <div class="text-center mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">🔥 연속 기록</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-4 border border-orange-200">
+                                <div class="flex items-center justify-center mb-2">
+                                    <span class="text-2xl streak-flame">🔥</span>
+                                </div>
+                                <div class="text-3xl font-bold text-orange-600 streak-number mb-1" id="writingStreakDisplay">0</div>
+                                <div class="text-sm text-gray-600">글쓰기 연속일</div>
+                                <div class="text-xs text-gray-500 mt-1" id="writingStreakStatus">오늘 완료하면 1일!</div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+                                <div class="flex items-center justify-center mb-2">
+                                    <span class="text-2xl">💪</span>
+                                </div>
+                                <div class="text-3xl font-bold text-green-600 mb-1" id="exerciseStreakDisplay">0</div>
+                                <div class="text-sm text-gray-600">운동 연속일</div>
+                                <div class="text-xs text-gray-500 mt-1" id="exerciseStreakStatus">운동하고 기록 시작!</div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
+                                <div class="flex items-center justify-center mb-2">
+                                    <span class="text-2xl">🎯</span>
+                                </div>
+                                <div class="text-3xl font-bold text-purple-600 mb-1" id="totalStreakDisplay">0</div>
+                                <div class="text-sm text-gray-600">전체 활동 연속일</div>
+                                <div class="text-xs text-gray-500 mt-1" id="totalStreakStatus">매일 무언가는 하자!</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="freeze-icon">❄️</span>
+                                    <span class="text-sm font-medium text-blue-800">연속일 보호막</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold text-blue-600" id="freezeCount">3개 보유</div>
+                                    <button onclick="useStreakFreeze()" id="freezeBtn" class="text-xs text-blue-500 hover:text-blue-700 mt-1">
+                                        보호막 사용하기
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-600 mt-2">
+                                하루 놓쳐도 연속 기록을 보호해주는 특별한 보호막입니다. 주간 목표 달성시 자동 충전!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <div class="text-center mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">현재 글 근육 레벨</h2>
+                        <div class="flex items-center justify-center space-x-4">
+                            <div class="text-4xl font-bold text-blue-600" id="currentLevel">1</div>
+                            <div class="text-gray-600">
+                                <div class="text-lg font-semibold" id="levelDescription">초보 작가 (5분)</div>
+                                <div class="text-sm" id="levelProgress">다음 레벨까지: 0/7일</div>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3 mt-4">
+                            <div id="progressBar" class="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div class="text-center mb-4">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">현재 운동 레벨</h2>
+                            <div class="flex items-center justify-center space-x-4">
+                                <div class="text-4xl font-bold text-green-600" id="currentExerciseLevel">1</div>
+                                <div class="text-gray-600">
+                                    <div class="text-lg font-semibold" id="exerciseLevelDescription">시작하는 라이더</div>
+                                    <div class="text-sm" id="exerciseLevelProgress">다음 레벨까지: 0/5회</div>
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3 mt-4">
+                                <div id="exerciseProgressBar" class="bg-gradient-to-r from-green-400 to-green-600 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                        <div id="writing-level-1" class="p-2 bg-blue-100 rounded text-center">
+                            <div class="font-semibold">Lv.1</div>
+                            <div>5분</div>
+                        </div>
+                        <div id="writing-level-2" class="p-2 bg-gray-100 rounded text-center">
+                            <div class="font-semibold">Lv.2</div>
+                            <div>10분</div>
+                        </div>
+                        <div id="writing-level-3" class="p-2 bg-gray-100 rounded text-center">
+                            <div class="font-semibold">Lv.3</div>
+                            <div>15분</div>
+                        </div>
+                        <div id="writing-level-11" class="p-2 bg-gray-100 rounded text-center">
+                            <div class="font-semibold">Lv.∞</div>
+                            <div>4시간</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs mt-2">
+                        <div id="exercise-level-1" class="p-2 bg-green-100 rounded text-center">
+                            <div class="font-semibold">Lv.1</div>
+                            <div>5회</div>
+                        </div>
+                        <div id="exercise-level-2" class="p-2 bg-gray-100 rounded text-center">
+                            <div class="font-semibold">Lv.2</div>
+                            <div>10회</div>
+                        </div>
+                        <div id="exercise-level-3" class="p-2 bg-gray-100 rounded text-center">
+                            <div class="font-semibold">Lv.3</div>
+                            <div>20회</div>
+                        </div>
+                        <div id="exercise-level-6" class="p-2 bg-gray-100 rounded text-center">
+                            <div class="font-semibold">Lv.∞</div>
+                            <div>100회</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <button onclick="changeDate(-1)" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
+                            ← 이전
+                        </button>
+                        <div class="text-center">
+                            <h2 id="currentDateText" class="text-xl font-semibold text-gray-800"></h2>
+                            <button onclick="goToToday()" class="text-sm text-blue-500 hover:text-blue-700 mt-1">오늘로 이동</button>
+                        </div>
+                        <button onclick="changeDate(1)" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
+                            다음 →
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-blue-500">🎯</span>
+                            <span id="progressText" class="text-sm font-medium">오늘 완료: 0/4</span>
+                        </div>
+                        <div id="progressBadge" class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                            시작해보세요!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-l-4 border-blue-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-4 h-4 rounded-full bg-blue-500"></div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">📖 오늘의 글쓰기</h3>
+                                <p class="text-sm text-gray-600">현재 목표: <span id="currentTarget" class="font-semibold text-blue-600">5분</span> 이상</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-700">연속: <span id="novel-streak">0</span>일</p>
+                            <p class="text-xs text-gray-500">이번 주: <span id="novel-week">0</span>/7</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">오늘의 작업 기록</h4>
+                        <div id="sessionsContainer" class="space-y-2 mb-3">
+                        </div>
+                        
+                        <div id="totalSummary" class="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-700">오늘 총 글쓰기</span>
+                                <div class="text-right">
+                                    <div class="text-lg font-bold text-blue-600" id="dailyTotal">0분 · 0자</div>
+                                    <div class="text-xs" id="goalStatus">목표까지 5분 필요</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4">
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">시간 (분)</label>
+                                <input 
+                                    type="number" 
+                                    id="sessionMinutes" 
+                                    min="1" 
+                                    max="480" 
+                                    placeholder="15"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">글자 수</label>
+                                <input 
+                                    type="number" 
+                                    id="sessionCharacters" 
+                                    min="0" 
+                                    max="50000"
+                                    placeholder="300"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                            </div>
+                        </div>
+                        
+                        <button onclick="addSession()" class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium mb-3">
+                            + 세션 추가
+                        </button>
+
+                        <button 
+                            onclick="toggleDayComplete()" 
+                            id="dayCompleteBtn" 
+                            class="w-full px-6 py-3 rounded-lg font-medium transition-all duration-200 bg-gray-200 text-gray-600"
+                        >
+                            오늘 목표 달성 완료
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-l-4 border-green-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-4 h-4 rounded-full bg-green-500"></div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">🏃 오늘의 운동</h3>
+                                <p class="text-sm text-gray-600">몸의 체력 = 글의 체력</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-700">연속: <span id="exercise-streak">0</span>일</p>
+                            <p class="text-xs text-gray-500">이번 주: <span id="exercise-week">0</span>/7</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">오늘의 운동 기록</h4>
+                        <div id="exerciseSessionsContainer" class="space-y-2 mb-3">
+                        </div>
+                        
+                        <div id="exerciseTotalSummary" class="p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-700">오늘 총 운동</span>
+                                <div class="text-right">
+                                    <div class="text-lg font-bold text-green-600" id="exerciseDailyTotal">0분 · 0kcal</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">시간 (분)</label>
+                                <input type="number" id="exerciseMinutes" min="1" placeholder="30" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">소모 칼로리 (kcal)</label>
+                                <input type="number" id="exerciseCalories" min="0" placeholder="250" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                        
+                        <button onclick="addExerciseSession()" class="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium mb-3">
+                            + 운동 기록 추가
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="customHabitsContainer" class="grid gap-4 mb-6">
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">📊 글 근육 분석</h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600" id="weeklyMinutes">0</div>
+                            <div class="text-sm text-gray-600">이번 주 총 글쓰기</div>
+                            <div class="text-xs text-gray-500">분</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600" id="averageMinutes">0</div>
+                            <div class="text-sm text-gray-600">일평균 글쓰기</div>
+                            <div class="text-xs text-gray-500">분</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600" id="weeklyCharacters">0</div>
+                            <div class="text-sm text-gray-600">이번 주 총 글자</div>
+                            <div class="text-xs text-gray-500">자</div>
+                        </div>
+                        <div class="text-center p-4 bg-orange-50 rounded-lg">
+                            <div class="text-2xl font-bold text-orange-600" id="averageCharacters">0</div>
+                            <div class="text-sm text-gray-600">일평균 글자</div>
+                            <div class="text-xs text-gray-500">자</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-3">📈 성장 지표</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">분당 평균 글자 수:</span>
+                                <span id="charactersPerMinute" class="font-medium text-gray-800">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">최고 기록 (일일):</span>
+                                <span id="dailyBest" class="font-medium text-gray-800">0자</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">최장 연속:</span>
+                                <span id="longestStreak" class="font-medium text-gray-800">0일</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">총 누적:</span>
+                                <span id="totalCharacters" class="font-medium text-gray-800">0자</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-800 mb-2">🏋️ 코치의 조언</h4>
+                        <p id="coachAdvice" class="text-sm text-gray-700 mb-2">
+                            글 근육은 하루아침에 생기지 않습니다. 꾸준함이 핵심이에요.
+                        </p>
+                        <p class="text-xs text-gray-600" id="nextLevelHint">
+                            💡 7일 더 연속으로 달성하면 다음 레벨로 승급!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="habit-tracker.js"></script>
+</body>
+</html>
