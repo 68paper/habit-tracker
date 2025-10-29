@@ -43,13 +43,13 @@
 ## 🚀 빠른 시작
 
 ### 온라인에서 바로 사용
-👉 **[여기를 클릭하여 바로 시작](https://your-username.github.io/writing-habit-tracker)** (GitHub Pages 링크로 교체하세요)
+👉 **[여기를 클릭하여 바로 시작](https://68paper.github.io/habit-tracker/)** 
 
 ### 로컬에서 실행
 
 1. **다운로드**
    ```bash
-   git clone https://github.com/your-username/writing-habit-tracker.git
+   git clone https://github.com/68paper/habit-tracker.git
    cd writing-habit-tracker
    ```
 
@@ -180,7 +180,7 @@ writing-habit-tracker/
 ## 👤 만든이
 
 **Your Name**
-- GitHub: [@your-username](https://github.com/your-username)
+- GitHub: [@your-username](https://github.com/68paper)
 - Email: your.email@example.com
 
 ---
@@ -227,5 +227,6 @@ writing-habit-tracker/
 프로젝트가 마음에 드셨다면 ⭐ Star를 눌러주세요!
 
 ---
+
 
 **Happy Writing!** ✍️
